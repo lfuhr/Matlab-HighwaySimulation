@@ -16,6 +16,11 @@ strasse=cell(lanes,zellen); %Strecke
 %Anzahl der Fahrzeuge
 nvecs=zellen*rho(2);
 
+% Setup pseudo random number generator
+rng = LCG;
+rand = rng.random;
+randi = @(x) ceil(x * rng.random);
+
 %Initialize
 for ln=1:lanes
     for i=1:nvecs
