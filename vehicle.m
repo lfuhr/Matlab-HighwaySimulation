@@ -1,18 +1,18 @@
-classdef vehicle
+classdef Vehicle
     
     properties
         type
         v
         vmax
-        gewechselt
+        hasChangedLane
     end 
     
     methods
-        function obj = vehicle(type,v,vmax)
-            obj.type=type;
+        function obj = Vehicle(type,v,vmax)
+            obj.type = type;
             obj.v = v;
-            obj.vmax=vmax;
-            obj.gewechselt=false;
+            obj.vmax = vmax;
+            obj.hasChangedLane = false;
         end
     end
 end
