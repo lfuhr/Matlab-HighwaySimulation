@@ -69,15 +69,7 @@ while dt>-dtmax
                 %lane = 2 : rechte Fahrbahn
                 
                 % Nach links wechseln
-                tempLane=lane;
-                
-                % Nach rechts wechseln
-                %Nach rechts wechseln, wenn genau rechts neben Auto frei
-                if lane<lanes &&...
-                        CheckLane(lane+1,zelle,strasse,-vmax,vehicle.v)>-1 %rechte Spur ist frei
-                    tempLane=lane+1;
-                    vehicle.gewechselt=+1;
-                end     
+                tempLane = lane;
                 
                 %Auf aktueller Spur muss gebremst werden
                 if vehicle.gewechselt==0 &&...
@@ -88,6 +80,15 @@ while dt>-dtmax
                         vehicle.gewechselt=-1;
                     end
                 end
+                
+                % Nach rechts wechseln
+                %Nach rechts wechseln, wenn genau rechts neben Auto frei
+                if vehicle.gewechselt==0 && lane<lanes &&...
+                        CheckLane(lane+1,zelle,strasse,-vmax,vehicle.v)>-1 %rechte Spur ist frei
+                    tempLane=lane+1;
+                    vehicle.gewechselt=+1;
+                end     
+                
                 
                 neueStrasse{tempLane,zelle} = vehicle;
             end
