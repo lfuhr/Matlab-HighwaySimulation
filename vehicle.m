@@ -12,7 +12,7 @@ classdef vehicle
             obj.type=type;
             obj.v = v;
             obj.vmax=vmax;
-            obj.gewechselt=false;
+            obj.gewechselt=0;
         end
     end
 end

@@ -10,11 +10,17 @@ function [] = PlotHighway( strasse )
     for i=1:zellen
         for j=1:lanes
             if ~isempty(strasse{j,i})
+              
                 if j==1
                     rectangle('position',[i-0.5 -j-0.5 0.9 0.9],'facecolor','blue');
                 else
                     rectangle('position',[i-0.5 -j-0.5 0.9 0.9],'facecolor','red');
                 end
+                
+                  if strasse{j,i}.gewechselt>0
+                    strasse{j,i}.gewechselt=0;
+                  end
+                
             end
         end
     end
