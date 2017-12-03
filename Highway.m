@@ -2,15 +2,25 @@ classdef Highway
     %HIGHWAY Models the highway as a snapshot and its transitions
     
     properties
-        Property1
+        nLanes
+        nCells
+        cells
+        rand
+        randi
     end
     
     methods
-        function obj = Highway(inputArg1,inputArg2)
-            %HIGHWAY Construct an instance of this class
-            %   Detailed explanation goes here
-            obj.Property1 = inputArg1 + inputArg2;
+        function obj = Highway(nLanes,nCells)
+            obj.nLanes = nLanes;
+            obj.nCells = nCells;
+            
+            % Setup Pseudo RNG
+            rng = LCG(912915758);
+            obj.rand = rng.random;
+            obj.randi = @(x) ceil(x * rng.random);
         end
+        
+        
         
         function outputArg = method1(obj,inputArg)
             %METHOD1 Summary of this method goes here

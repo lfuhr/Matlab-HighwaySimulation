@@ -3,7 +3,7 @@ clc;
 
 figure('units', 'normalized', 'outerposition', [0 0 1 1])
 lanes = 5; %Anzahl an Spuren
-zellen = 100; %Länge der Strecke
+nCells = 100; %Länge der Strecke
 
 vmaxCars = [5 6 7 8 9]; %Max Geschwindigkeit PKW
 maxVMax = max(vmaxCars);
@@ -22,10 +22,10 @@ troedelwsnlkt = tp(2);
 op = [0 0.2 0.5 0.8 1]; %Überholwahrscheinlichkeit
 ueberholwsnlkt = op(end);
 
-strasse = cell(lanes,zellen); %Strecke
+strasse = cell(lanes, nCells); %Strecke
 
 %Anzahl der Fahrzeuge pro Fahrspur
-nVehicles = zellen * rhoVehicles;
+nVehicles = nCells * rhoVehicles;
 nTrucks = nVehicles * ratioTrucks;
 nCars = nVehicles - nTrucks;
 
@@ -33,7 +33,7 @@ nCars = nVehicles - nTrucks;
 idxmod  =  @(x, indexRange) mod(x - 1, indexRange) + 1;
 
 % Override Rng
-rng = LCG;
+rng = LCG(912915758);
 rand = rng.random;
 randi = @(x) ceil(x * rng.random);
 
@@ -41,7 +41,7 @@ randi = @(x) ceil(x * rng.random);
 %Initialize
 sumTrucks = 0;
 for i = 1:nVehicles
-    zr = randi(zellen);
+    zr = randi(nCells);
     lr = randi(lanes);
     
     % Place Truck
@@ -55,9 +55,9 @@ for i = 1:nVehicles
             isEmpty = 1;
             tempLengthTruck = lengthTrucks(randi(length(lengthTrucks)));
             for iTruck = 1:tempLengthTruck
-                if ~ isempty(strasse{ lr, idxmod(zr+1-iTruck, zellen) })
+                if ~ isempty(strasse{ lr, idxmod(zr+1-iTruck, nCells) })
                     isEmpty = 0;
-                    zr = randi(zellen);
+                    zr = randi(nCells);
                     lr = lanes - randi(2) + 1;
                 end
             end
@@ -67,9 +67,9 @@ for i = 1:nVehicles
         for iTruck = 1:tempLengthTruck
             vT = randi(vMaxTruck);
             if iTruck > 1
-                strasse{lr, idxmod(zr+1 - iTruck,zellen)} = Vehicle(['LKW' num2str(iTruck)], 0, 0, 0);
+                strasse{lr, idxmod(zr + 1 - iTruck, nCells)} = Vehicle(['LKW' num2str(iTruck)], 0, 0, 0);
             else
-                strasse{lr, idxmod(zr+1 - iTruck, zellen)} = Vehicle(['LKW' num2str(iTruck)], tempLengthTruck, vT, vMaxTruck);
+                strasse{lr, idxmod(zr + 1 - iTruck, nCells)} = Vehicle(['LKW' num2str(iTruck)], tempLengthTruck, vT, vMaxTruck);
             end
         end
         
@@ -79,7 +79,7 @@ for i = 1:nVehicles
     else
         
         while ~ isempty(strasse{lr,zr})
-            zr = randi(zellen);
+            zr = randi(nCells);
             lr = randi(lanes);
         end
         tempVMax = vmaxCars(randi(length(vmaxCars)));
@@ -115,10 +115,10 @@ dtmax = 30;
 while dt > -dtmax
     dt = dt - 0.2;
     
-    neueStrasse = cell(lanes,zellen);
+    neueStrasse = cell(lanes,nCells);
     
     for lane = 1:lanes
-        for zelle = 1:zellen
+        for zelle = 1:nCells
             
             vehicle = strasse{lane,zelle};
             if  ~ isempty(vehicle)
@@ -134,7 +134,7 @@ while dt > -dtmax
                     tempLane = lane;
                     
                     %Auf aktueller Spur muss gebremst werden
-                    if vehicle.gewechselt == 0 &&...
+                    if vehicle.gewechselt == 0 && ...
                             CheckLane(lane, zelle, strasse, 1, vehicle.v) <= vehicle.v
                         %Nach links wechslen, wenn genau links neben Auto frei
                         if lane>1 && CheckLane(lane-1, zelle, neueStrasse, -maxVMax, vehicle.v) > vehicle.v &&...
@@ -156,8 +156,8 @@ while dt > -dtmax
                     neueStrasse{tempLane,zelle} = vehicle;
                     if strcmp(vehicle.type,'LKW1')
                         for iTruck=1:vehicle.length-1
-                            neueStrasse{tempLane,idxmod(zelle-iTruck,zellen)} ...
-                                = strasse{lane,idxmod(zelle-iTruck,zellen)};
+                            neueStrasse{tempLane,idxmod(zelle-iTruck,nCells)} ...
+                                = strasse{lane,idxmod(zelle-iTruck,nCells)};
                         end
                     end
                     
@@ -167,10 +167,10 @@ while dt > -dtmax
     end
     
     strasse = neueStrasse;
-    neueStrasse = cell(lanes,zellen);
+    neueStrasse = cell(lanes,nCells);
     
     for lane=1:lanes
-        for zelle = 1:zellen
+        for zelle = 1:nCells
             
             vehicle = strasse{lane, zelle};
             if  ~ isempty(vehicle)                
@@ -183,11 +183,11 @@ while dt > -dtmax
                     % vehicle.v = vehicle.v - (vehicle.v ~= 0 && rand(troedelwsnlkt));
                     
                     % Bewegen
-                    neueStrasse{lane, idxmod(zelle + vehicle.v, zellen)} = vehicle;
+                    neueStrasse{lane, idxmod(zelle + vehicle.v, nCells)} = vehicle;
                     if strcmp(vehicle.type, 'LKW1')
                         for iTruck = 1:vehicle.length-1
-                            neueStrasse{lane, idxmod(zelle + vehicle.v-iTruck, zellen)} ...
-                                = strasse{lane,idxmod(zelle-iTruck,zellen)};
+                            neueStrasse{lane, idxmod(zelle + vehicle.v-iTruck, nCells)} ...
+                                = strasse{lane,idxmod(zelle-iTruck,nCells)};
                         end
                     end
                     
