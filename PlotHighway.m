@@ -3,28 +3,28 @@ function [] = PlotHighway( strasse )
 %   Detailed explanation goes here
 
 
-[lanes, zellen]=size(strasse);
+[lanes, zellen] = size(strasse);
 
     clf
     hold on;
-    for i=1:zellen
-        for j=1:lanes
-            if ~isempty(strasse{j,i})
+    for i = 1:zellen
+        for j = 1:lanes
+            if ~ isempty(strasse{j,i})
               
                 if j==1
-                    rectangle('position',[i-0.5 -j-0.5 0.9 0.9],'facecolor','blue');
+                    rectangle('position', [i-0.5 -j-0.5 0.9 0.9], 'facecolor', 'blue');
                 else
-                    rectangle('position',[i-0.5 -j-0.5 0.9 0.9],'facecolor','red');
+                    rectangle('position', [i-0.5 -j-0.5 0.9 0.9], 'facecolor', 'red');
                 end
                 
-                  if strasse{j,i}.gewechselt>0
-                    strasse{j,i}.gewechselt=0;
+                  if strasse{j,i}.gewechselt > 0
+                    strasse{j,i}.gewechselt = 0;
                   end
                 
             end
         end
     end
-    axis([0 zellen+1 -lanes-1 0]);
+    axis([0, zellen+1, -lanes-1, 0]);
 
 end
 

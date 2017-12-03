@@ -4,14 +4,14 @@ function [ blockedI ] = CheckLane( lane,zelle,strasse,startv,endv )
 
 zellen = length(strasse(1,:));
 
-blockedI=endv+1;
+blockedI = endv+1;
 
 idxmod = @(x, indexRange) mod(x - 1, indexRange) + 1;
 
 for idx=startv:endv
-    if ~isempty(strasse{lane,idxmod(zelle+idx,zellen)})
+    if ~isempty(strasse{lane, idxmod(zelle+idx,zellen)})
         
-        blockedI=idx;
+        blockedI = idx;
         return;
     end
 end
