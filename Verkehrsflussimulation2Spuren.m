@@ -65,9 +65,9 @@ for i=1:nVehicles
         for iTruck=1:tempLengthTruck
             vT=randi(vmaxTruck);
             if iTruck>1
-                strasse{lr,idxmod(zr+1-iTruck,zellen)}=LKW(['LKW' num2str(iTruck)],0,0,0);
+                strasse{lr,idxmod(zr+1-iTruck,zellen)}=Vehicle(['LKW' num2str(iTruck)],0,0,0);
             else
-                strasse{lr,idxmod(zr+1-iTruck,zellen)}=LKW(['LKW' num2str(iTruck)],tempLengthTruck,vT,vmaxTruck);
+                strasse{lr,idxmod(zr+1-iTruck,zellen)}=Vehicle(['LKW' num2str(iTruck)],tempLengthTruck,vT,vmaxTruck);
             end
         end
         
@@ -81,7 +81,7 @@ for i=1:nVehicles
             lr=randi(lanes);
         end
         tempVMax=vmaxCars(randi(length(vmaxCars)));
-        strasse{lr,zr}=PKW('PKW',1,randi(tempVMax),tempVMax);
+        strasse{lr,zr}=Vehicle('PKW',1,randi(tempVMax),tempVMax);
         
     end
 end
