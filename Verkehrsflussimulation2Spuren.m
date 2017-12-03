@@ -46,7 +46,7 @@ for i = 1:nVehicles
     lr = randi(lanes);
     
     % Place Truck
-    if lr > lanes-2 && sumTrucks < nTrucks   
+    if lr > lanes - 2 && sumTrucks < nTrucks   
         
         % Finde Lücke die für LKW groß genug ist
         isEmpty = 0;  
@@ -111,11 +111,9 @@ end
 %lane  =  1 : linkeste Fahrbahn
 %lane  =  n : rechteste Fahrbahn
 
-dt = 0;
-dtmax = 30;
-while dt > -dtmax
-    dt = dt - 0.2;
-    
+simulationTime = 150;
+for iIime = 1:simulationTime
+  
     neueStrasse = cell(lanes,nCells);
     
     for lane = 1:lanes
@@ -175,10 +173,10 @@ while dt > -dtmax
             
             vehicle = strasse{lane, zelle};
             if  ~ isempty(vehicle)                
-                if strcmp(vehicle.type, 'PKW')||strcmp(vehicle.type, 'LKW1')
+                if strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW1')
                     
                     %Bremsen
-                    vehicle.v=CheckLane(lane, zelle, strasse, 1, vehicle.v)-1;
+                    vehicle.v = CheckLane(lane, zelle, strasse, 1, vehicle.v)-1;
                     
                     % Trödeln
                     % vehicle.v = vehicle.v - (vehicle.v ~= 0 && rand(troedelwsnlkt));
@@ -186,9 +184,9 @@ while dt > -dtmax
                     % Bewegen
                     neueStrasse{lane, idxmod(zelle + vehicle.v, nCells)} = vehicle;
                     if strcmp(vehicle.type, 'LKW1')
-                        for iTruck = 1:vehicle.length-1
+                        for iTruck = 1:vehicle.length - 1
                             neueStrasse{lane, idxmod(zelle + vehicle.v-iTruck, nCells)} ...
-                                = strasse{lane,idxmod(zelle-iTruck,nCells)};
+                                = strasse{lane,idxmod(zelle - iTruck, nCells)};
                         end
                     end
                     
@@ -200,8 +198,8 @@ while dt > -dtmax
     
     strasse = animateHighway(strasse,maxLengthTrucks);
     
-    %%% Check wie viele Autos sich auf der Strasse befinden
-    %%% nur für Implementation
+    % Check wie viele Autos sich auf der Strasse befinden
+    % nur für Implementation
 % summe=0;
 % sumTrucks=0;
 % for i=1:lanes
