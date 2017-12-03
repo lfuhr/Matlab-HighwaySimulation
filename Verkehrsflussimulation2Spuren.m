@@ -1,19 +1,21 @@
 clear;
 clc;
 
-% figure('units','normalized','outerposition',[0 0 1 1])
-
+figure('units','normalized','outerposition',[0 0 1 1])
 csize=7.5; %Zellengröße
-zellen=20; %Länge der Strecke
+lanes=5; %Anzahl an Spuren
+zellen=100; %Länge der Strecke
 
-vmaxCar=5; %Max Geschwindigkeit PKW
-rV=[0.16 0.2 0.25]; %Mittlere Dichte Fahrzeuge
+vmaxCars=[5 6 7 8 9]; %Max Geschwindigkeit PKW
+maxVMax=max(vmaxCars);
+rV=[0.16 0.2 0.5]; %Mittlere Dichte Fahrzeuge
 rhoVehicles=rV(3);
 
 vmaxTruck=3; %Max Geschwindigkeit LKW
 rT=[0.2 0.5 0.8]; % prozentualer Anteil an LKW
 ratioTrucks=rT(1);
-lengthTruck=2; %Zellenlänge pro LKW
+lengthTrucks=[3 6]; %Zellenlänge pro LKW
+maxLengthTrucks=max(lengthTrucks);
 
 tp=[0 0.2 0.5 0.8]; %Trödelwahrscheinlichkeit
 troedelwsnlkt=tp(2);
@@ -21,7 +23,6 @@ troedelwsnlkt=tp(2);
 op=[0 0.2 0.5 0.8 1]; %Überholwahrscheinlichkeit
 ueberholwsnlkt=op(end);
 
-lanes=2; %Anzahl an Spuren
 strasse=cell(lanes,zellen); %Strecke
 
 %Anzahl der Fahrzeuge pro Fahrspur
@@ -45,11 +46,13 @@ for i=1:nVehicles
     if lr > lanes-2 && sumTrucks < nTrucks   
         
         % Finde Lücke die für LKW groß genug ist
-        isEmpty=0;        
+        isEmpty=0;  
+        tempLengthTruck=0;  
         while ~isEmpty
             
             isEmpty=1;
-            for iTruck=1:lengthTruck
+            tempLengthTruck=lengthTrucks(randi(length(lengthTrucks)));
+            for iTruck=1:tempLengthTruck
                 if ~isempty(strasse{lr,idxmod(zr+1-iTruck,zellen)})
                     isEmpty=0;
                     zr=randi(zellen);
@@ -59,12 +62,12 @@ for i=1:nVehicles
         end
         
         % Vorderes Ende = 1 / Hinteres Ende = lengthTruck
-        for iTruck=1:lengthTruck
+        for iTruck=1:tempLengthTruck
             vT=randi(vmaxTruck);
             if iTruck>1
-                strasse{lr,idxmod(zr+1-iTruck,zellen)}=LKW(['LKW' num2str(iTruck)],0,0);
+                strasse{lr,idxmod(zr+1-iTruck,zellen)}=LKW(['LKW' num2str(iTruck)],0,0,0);
             else
-                strasse{lr,idxmod(zr+1-iTruck,zellen)}=LKW(['LKW' num2str(iTruck)],vT,vmaxTruck);
+                strasse{lr,idxmod(zr+1-iTruck,zellen)}=LKW(['LKW' num2str(iTruck)],tempLengthTruck,vT,vmaxTruck);
             end
         end
         
@@ -77,14 +80,14 @@ for i=1:nVehicles
             zr=randi(zellen);
             lr=randi(lanes);
         end
-        
-        strasse{lr,zr}=PKW('PKW',randi(vmaxCar),vmaxCar);
+        tempVMax=vmaxCars(randi(length(vmaxCars)));
+        strasse{lr,zr}=PKW('PKW',1,randi(tempVMax),tempVMax);
         
     end
 end
 
 
-animateHighway(strasse);
+% animateHighway(strasse,maxLengthTrucks);
 
 %%% Check wie viele Autos sich auf der Strasse befinden
 %%% nur für Implementation
@@ -132,7 +135,7 @@ while dt>-dtmax
                     if vehicle.gewechselt==0 &&...
                             CheckLane(lane,zelle,strasse,1,vehicle.v) <= vehicle.v
                         %Nach links wechslen, wenn genau links neben Auto frei
-                        if lane>1 && CheckLane(lane-1,zelle,neueStrasse,-vmaxCar,vehicle.v)> vehicle.v &&...
+                        if lane>1 && CheckLane(lane-1,zelle,neueStrasse,-maxVMax,vehicle.v)> vehicle.v &&...
                                 dice(ueberholwsnlkt)
                             tempLane=lane-1;
                             vehicle.gewechselt=-1;
@@ -142,7 +145,7 @@ while dt>-dtmax
                     % Nach rechts wechseln
                     %Nach rechts wechseln, wenn genau rechts neben Auto frei
                     if vehicle.gewechselt == 0 && lane < lanes && dice(ueberholwsnlkt) &&...
-                            CheckLane(lane+1,zelle,strasse,0,vehicle.v) > vehicle.v %rechte Spur ist frei
+                            CheckLane(lane+1,zelle,strasse,-vehicle.length+1,vehicle.v) > vehicle.v %rechte Spur ist frei
                         tempLane=lane+1;
                         vehicle.gewechselt=+1;
                     end
@@ -150,7 +153,7 @@ while dt>-dtmax
                     
                     neueStrasse{tempLane,zelle} = vehicle;
                     if strcmp(vehicle.type,'LKW1')
-                        for iTruck=1:lengthTruck-1
+                        for iTruck=1:vehicle.length-1
                             neueStrasse{tempLane,idxmod(zelle-iTruck,zellen)}=strasse{lane,idxmod(zelle-iTruck,zellen)};
                         end
                     end
@@ -179,7 +182,7 @@ while dt>-dtmax
                     % Bewegen
                     neueStrasse{lane,idxmod(zelle+vehicle.v,zellen)} = vehicle;
                     if strcmp(vehicle.type,'LKW1')
-                        for iTruck=1:lengthTruck-1
+                        for iTruck=1:vehicle.length-1
                             neueStrasse{lane,idxmod(zelle+vehicle.v-iTruck,zellen)}=strasse{lane,idxmod(zelle-iTruck,zellen)};
                         end
                     end
@@ -190,7 +193,7 @@ while dt>-dtmax
     end
     strasse = neueStrasse;
     
-    strasse=animateHighway(strasse);
+    strasse=animateHighway(strasse,maxLengthTrucks);
 %     PlotHighway(strasse);
     
     %%% Check wie viele Autos sich auf der Strasse befinden

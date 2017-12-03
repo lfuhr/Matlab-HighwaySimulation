@@ -5,15 +5,16 @@ classdef LKW
         v
         vmax
         gewechselt
+        length
     end 
     
     methods
-        function obj = LKW(type,v,vmax)
+        function obj = LKW(type,length,v,vmax)
             obj.type=type;
             obj.v = v;
             obj.vmax=vmax;
             obj.gewechselt=0;
+            obj.length=length;
         end
     end
 end
-
