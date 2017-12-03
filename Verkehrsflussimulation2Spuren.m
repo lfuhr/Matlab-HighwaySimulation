@@ -10,7 +10,7 @@ maxVMax = max(vmaxCars);
 rV = [0.16 0.2 0.5]; %Mittlere Dichte Fahrzeuge
 rhoVehicles = rV(3);
 
-vmaxTruck = 3; %Max Geschwindigkeit LKW
+vMaxTruck = 3; %Max Geschwindigkeit LKW
 rT = [0.2 0.5 0.8]; % prozentualer Anteil an LKW
 ratioTrucks = rT(1);
 lengthTrucks = [3 6]; %Zellenlänge pro LKW
@@ -32,8 +32,11 @@ nCars = nVehicles - nTrucks;
 % Funktion für Ringstrasse
 idxmod  =  @(x, indexRange) mod(x - 1, indexRange) + 1;
 
-% Funktion für Würfeln
-dice  =  @(wsnlkt) rand() + wsnlkt > 1;
+% Override Rng
+rng = LCG;
+rand = rng.random;
+randi = @(x) ceil(x * rng.random);
+
 
 %Initialize
 sumTrucks = 0;
@@ -62,11 +65,11 @@ for i = 1:nVehicles
         
         % Vorderes Ende  =  1 / Hinteres Ende  =  lengthTruck
         for iTruck = 1:tempLengthTruck
-            vT = randi(vmaxTruck);
+            vT = randi(vMaxTruck);
             if iTruck > 1
                 strasse{lr, idxmod(zr+1 - iTruck,zellen)} = Vehicle(['LKW' num2str(iTruck)], 0, 0, 0);
             else
-                strasse{lr, idxmod(zr+1 - iTruck, zellen)} = Vehicle(['LKW' num2str(iTruck)], tempLengthTruck, vT, vmaxTruck);
+                strasse{lr, idxmod(zr+1 - iTruck, zellen)} = Vehicle(['LKW' num2str(iTruck)], tempLengthTruck, vT, vMaxTruck);
             end
         end
         
@@ -135,7 +138,7 @@ while dt > -dtmax
                             CheckLane(lane, zelle, strasse, 1, vehicle.v) <= vehicle.v
                         %Nach links wechslen, wenn genau links neben Auto frei
                         if lane>1 && CheckLane(lane-1, zelle, neueStrasse, -maxVMax, vehicle.v) > vehicle.v &&...
-                                dice(ueberholwsnlkt)
+                                rand(ueberholwsnlkt)
                             tempLane=lane-1;
                             vehicle.gewechselt=-1;
                         end
@@ -143,7 +146,7 @@ while dt > -dtmax
                     
                     % Nach rechts wechseln
                     %Nach rechts wechseln, wenn genau rechts neben Auto frei
-                    if vehicle.gewechselt == 0 && lane < lanes && dice(ueberholwsnlkt) &&...
+                    if vehicle.gewechselt == 0 && lane < lanes && rand(ueberholwsnlkt) &&...
                             CheckLane(lane+1,zelle,strasse,-vehicle.length+1,vehicle.v) > vehicle.v %rechte Spur ist frei
                         tempLane=lane+1;
                         vehicle.gewechselt=+1;
@@ -177,7 +180,7 @@ while dt > -dtmax
                     vehicle.v=CheckLane(lane, zelle, strasse, 1, vehicle.v)-1;
                     
                     % Trödeln
-                    % vehicle.v = vehicle.v - (vehicle.v ~= 0 && dice(troedelwsnlkt));
+                    % vehicle.v = vehicle.v - (vehicle.v ~= 0 && rand(troedelwsnlkt));
                     
                     % Bewegen
                     neueStrasse{lane, idxmod(zelle + vehicle.v, zellen)} = vehicle;
