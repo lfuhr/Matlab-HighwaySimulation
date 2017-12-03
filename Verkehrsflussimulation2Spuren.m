@@ -1,5 +1,6 @@
-clear;
-clc;
+clear; clc;
+addpath Model;
+addpath Visualization;
 
 figure('units', 'normalized', 'outerposition', [0 0 1 1])
 lanes = 5; %Anzahl an Spuren
@@ -125,7 +126,7 @@ while dt > -dtmax
                     
                 if strcmp(vehicle.type,'PKW') || strcmp(vehicle.type, 'LKW1')
                     % Beschleunigen
-                    vehicle.v = min(vehicle.v+1, vehicle.vmax);
+                    vehicle.v = min(vehicle.v + 1, vehicle.vmax);
                     
                     %lane = 1 : linkeste Fahrbahn
                     %lane = n : rechteste Fahrbahn
