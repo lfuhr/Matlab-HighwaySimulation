@@ -31,8 +31,9 @@ highway.initialize([LKWs, PKWs])
 simulationTime = 150; % seconds
 
 for iIime = 1:simulationTime
-    higway.simulate()
-    PlotHighway.plot()
+    highway.simulate()
+    animateHighway(highway)
+%     PlotHighway.plot()
     % do some other analysis
 end
 

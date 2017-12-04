@@ -1,4 +1,4 @@
-function [strasse] = animateHighway(strasse,maxLengthTruck)
+function animateHighway(strasse,maxLengthTruck)
 
 
 idxmod = @(x, indexRange) mod(x - 1, indexRange) + 1;
@@ -45,9 +45,9 @@ for frame = 1:fps
                     set(car, 'FaceColor', 'red','EdgeColor', 'red')
                 end
                 
-                if frame==fps
-                    strasse{i,j}.gewechselt=0;
-                end
+%                 if frame==fps
+%                     strasse{i,j}.gewechselt=0;
+%                 end
             end
         end
     end

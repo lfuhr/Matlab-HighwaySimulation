@@ -197,7 +197,7 @@ for iIime = 1:simulationTime
     strasse = neueStrasse;
     
     animateHighway(strasse,maxLengthTrucks);
-    strasse = RobustCellFun(@reset,strasse);
+    strasse = robustcellfun(@reset,strasse);
     
     
     % Check wie viele Autos sich auf der Strasse befinden
@@ -226,4 +226,8 @@ function vehicle = reset(vehicle)
         vehicle.gewechselt=0;
 end
 
+
+function cellArray = robustcellfun(f,cellArray)
+        cellArray = cellfun(@(c)doifnotempty(f, c),cellArray, 'un', false);
+end
 
