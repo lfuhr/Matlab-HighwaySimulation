@@ -52,7 +52,7 @@ for frame = 1:fps
         end
     end
     pause(1/(fps*4));
-end
+ end
 
 end
 
