@@ -24,12 +24,8 @@ classdef Highway
             rng = LCG(912915758);
             obj.rand = rng.random;
             obj.randi = @(x) ceil(x * rng.random);
-        end
-        
-        function setSpeedLimit(obj, speedLimit)
-            obj.speedLimit = speedLimit;
         end        
-        
+       
         function outputArg = method1(obj,inputArg)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
@@ -72,9 +68,11 @@ classdef Highway
 %             set.highway(obj.highway);
         end %end of function placeVehicles
         
-%         function obj = set.highway(obj,value)
-%             obj.highway=value;
-%         end
+        function obj = simulate(obj)
+           
+            
+            
+        end
         
     end
 end

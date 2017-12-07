@@ -29,14 +29,13 @@ for iVehicle = nLkw+1 : (rhoPkw * nCells)
 end
 highway = highway.placeVehicles(vehicles);
 
-
 % -------------------------------------------------------------------------
 % Run Simulation
 % -------------------------------------------------------------------------
 simulationTime = 150; % seconds
 
 for iIime = 1:simulationTime
-    highway.simulate()
+    highway = highway.simulate();
     animateHighway(highway)
     % do some other analysis
 end
