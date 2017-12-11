@@ -27,7 +27,7 @@ for iVehicle = nLkw+1 : (rhoPkw * nCells)
     iPkwVMax = highway.randi(3) + 3; % 4-6
     vehicles(iVehicle) = Vehicle('PKW', 1, highway.randi(iPkwVMax), iPkwVMax);    
 end
-highway = highway.placeVehicles(vehicles);
+highway.placeVehicles(vehicles);
 
 % -------------------------------------------------------------------------
 % Run Simulation
@@ -35,7 +35,7 @@ highway = highway.placeVehicles(vehicles);
 simulationTime = 150; % seconds
 
 for iIime = 1:simulationTime
-    highway = highway.simulate();
+    highway.Simulate();
     animateHighway(highway)
     % do some other analysis
 end

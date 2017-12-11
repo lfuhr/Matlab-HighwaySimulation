@@ -1,4 +1,4 @@
-classdef Highway
+classdef Highway < handle
     %HIGHWAY Models the highway as a snapshot and its transitions
     
     properties
@@ -8,8 +8,7 @@ classdef Highway
         rand
         randi
         maxLengthTruck % nur zur Visualisierung
-        speedLimit        
-        idxmod  =  @(x, indexRange) mod(x - 1, indexRange) + 1;
+        speedLimit
     end
     
     methods
@@ -32,7 +31,7 @@ classdef Highway
             outputArg = obj.Property1 + inputArg;
         end
         
-        function obj = placeVehicles(obj, vehicles)
+        function placeVehicles(obj, vehicles)
             
             for vehicle = vehicles
                 if obj.maxLengthTruck < vehicle.length
@@ -64,15 +63,77 @@ classdef Highway
                     end
                 end
             end         
-            
-%             set.highway(obj.highway);
-        end %end of function placeVehicles
+        end % function placeVehicles
         
-        function obj = simulate(obj)
+        function Simulate(obj)
            
+            % Zurücksetzen
+            RobustCellFun(@Highway.Reset, obj.highway);
+   
+            % Beschleunigen
+            RobustCellFun(@Highway.Accelerate, obj.highway); 
+                        
+            % Wechseln
+            obj.highway = Highway.ChangeLane(obj.highway);
             
+            % Bremsen
+            obj.highway = Highway.SlowDown(obj.highway);
             
+            % Trödeln
+            RobustCellFun(@obj.Dawdle, obj.highway);
+            
+            % Bewegen
+            obj.highway = Highway.Move(obj.highway);
         end
         
+        function Dawdle(obj, vehicle)
+            vehicle.v = vehicle.v - (vehicle.v ~= 0 && obj.rand(vehicle.troedelwsnlkt));
+        end
+        
+        function neueStrasse = Move(obj, altestrasse)
+            neueStrasse = cell(lanes, obj.nCells);
+            for lane=1:lanes
+                for zelle = 1:obj.nCells
+                    
+                    vehicle = altestrasse{lane, zelle};
+                    if  ~ isempty(vehicle) && (strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW1'))             
+                        
+                        neueStrasse{lane, idxmod(zelle + vehicle.v, obj.nCells)} = vehicle;
+                        if strcmp(vehicle.type, 'LKW1')
+                            for iTruck = 1:vehicle.length - 1
+                                neueStrasse{lane, idxmod(zelle + vehicle.v-iTruck, obj.nCells)} ...
+                                    = altestrasse{lane,idxmod(zelle - iTruck, obj.nCells)};
+                            end
+                        end
+        
+                    end
+                    
+                end
+            end
+        end
+        
+        
+    end
+    methods (Static)
+        
+        function highway = ChangeLane(highway)
+            % not implemented
+        end
+        
+        function highway = SlowDown(highway)
+            % not implemented
+        end
+        
+        function Reset(vehicle)
+            vehicle.gewechselt = 0;
+        end
+                
+        function Accelerate(vehicle)
+            vehicle.v = min(vehicle.v + 1, vehicle.vmax);
+        end
+        
+        function y = idxmod(x, indexRange)
+            y = mod(x - 1, indexRange) + 1;
+        end
     end
 end
