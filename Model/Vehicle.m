@@ -6,7 +6,7 @@ classdef Vehicle < handle
         vmax
         gewechselt
         length
-        troedelwsnlkt
+        troedelwsnlkt = 0
     end 
     
     methods

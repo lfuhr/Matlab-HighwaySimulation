@@ -24,8 +24,8 @@ nLkw = floor(rhoLkw * highway.nLanes * highway.nCells);
 
 vehicles = repmat(Vehicle('LKW', 2, 1, 3),1, nPkw+nLkw);
 for iVehicle = nLkw+1 : (rhoPkw * nCells)
-    iPkwVMax = highway.randi(3) + 3; % 4-6
-    vehicles(iVehicle) = Vehicle('PKW', 1, highway.randi(iPkwVMax), iPkwVMax);    
+    iPkwVMax = highway.rng.randi(3) + 3; % 4-6
+    vehicles(iVehicle) = Vehicle('PKW', 1, highway.rng.randi(iPkwVMax), iPkwVMax);    
 end
 highway.placeVehicles(vehicles);
 

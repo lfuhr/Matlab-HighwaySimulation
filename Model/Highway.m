@@ -5,8 +5,7 @@ classdef Highway < handle
         nLanes
         nCells
         highway
-        rand
-        randi
+        rng
         maxLengthTruck % nur zur Visualisierung
         speedLimit
     end
@@ -20,9 +19,7 @@ classdef Highway < handle
             obj.maxLengthTruck = 0;
             
             % Setup Pseudo RNG
-            rng = LCG(912915758);
-            obj.rand = rng.random;
-            obj.randi = @(x) ceil(x * rng.random);
+            obj.rng = LCG(912915758);
         end        
        
         function outputArg = method1(obj,inputArg)
@@ -38,8 +35,8 @@ classdef Highway < handle
                     obj.maxLengthTruck = vehicle.length;
                 end
                 
-                randCell = obj.randi(obj.nCells);
-                randLane = obj.randi(obj.nLanes);
+                randCell = obj.rng.randi(obj.nCells);
+                randLane = obj.rng.randi(obj.nLanes);
                 
                 % Finde Lücke die für Fahrzeug groß genug ist                  
                 isEmpty = 0;                
@@ -48,8 +45,8 @@ classdef Highway < handle
                     for iVehicleLength = 1:vehicle.length
                         if ~ isempty(obj.highway{ randLane, obj.idxmod(randCell+1-iVehicleLength, obj.nCells) })
                             isEmpty = 0;
-                            randCell = obj.randi(obj.nCells);
-                            randLane = obj.randi(obj.nLanes);
+                            randCell = obj.rng.randi(obj.nCells);
+                            randLane = obj.rng.randi(obj.nLanes);
                         end
                     end
                 end
@@ -83,16 +80,16 @@ classdef Highway < handle
             RobustCellFun(@obj.Dawdle, obj.highway);
             
             % Bewegen
-            obj.highway = Highway.Move(obj.highway);
+            obj.highway = obj.Move(obj.highway);
         end
         
         function Dawdle(obj, vehicle)
-            vehicle.v = vehicle.v - (vehicle.v ~= 0 && obj.rand(vehicle.troedelwsnlkt));
+            vehicle.v = vehicle.v - (vehicle.v ~= 0 && ((obj.rng.rand() - vehicle.troedelwsnlkt) < 0));
         end
         
         function neueStrasse = Move(obj, altestrasse)
-            neueStrasse = cell(lanes, obj.nCells);
-            for lane=1:lanes
+            neueStrasse = cell(obj.nLanes, obj.nCells);
+            for lane=1:obj.nLanes
                 for zelle = 1:obj.nCells
                     
                     vehicle = altestrasse{lane, zelle};
@@ -111,7 +108,6 @@ classdef Highway < handle
                 end
             end
         end
-        
         
     end
     methods (Static)
