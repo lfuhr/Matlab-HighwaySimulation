@@ -7,13 +7,13 @@ addpath Visualization;
 % -------------------------------------------------------------------------
 % Create highway model
 % -------------------------------------------------------------------------
-nLanes = 5;                 %Anzahl an Spuren
-nCells = 20;               %Länge der Strecke
+nLanes = 3;                 %Anzahl an Spuren
+nCells = 100;               %Länge der Strecke
 highway = Highway(nLanes, nCells);
 
 tp = [0 0.2 0.5 0.8]; %Trödelwahrscheinlichkeiten
 
-uep = [0 0.2 0.5 0.8 1];
+uep = [0 0.2 0.5 0.8 1]; %Überholwahrscheinlichkeit
 
 % -------------------------------------------------------------------------
 % Initialize Highway with Vehicles
@@ -25,17 +25,23 @@ nPkw = floor(rhoPkw * highway.nLanes * highway.nCells);
 nLkw = floor(rhoLkw * highway.nLanes * highway.nCells);
 
 
-vehicles = repmat(Vehicle('LKW', 2, 1, 3, tp(1), uep(end)),1, nPkw+nLkw);
-for iVehicle = nLkw+1 : (rhoPkw * nCells)
+vehicles = cell(nPkw+nLkw, 1);
+
+for iVehicle = 1 : nLkw
+    iLkwVMax = 3;
+    vehicles{iVehicle} = Vehicle('LKW', 2, highway.rng.randi(iLkwVMax), iLkwVMax, tp(1), uep(end));    
+end
+
+for iVehicle = nLkw+1 : (nLkw+nPkw)
     iPkwVMax = highway.rng.randi(3) + 3; % 4-6
-    vehicles(iVehicle) = Vehicle('PKW', 1, highway.rng.randi(iPkwVMax), iPkwVMax, tp(1), uep(end));    
+    vehicles{iVehicle} = Vehicle('PKW', 1, highway.rng.randi(iPkwVMax), iPkwVMax, tp(1), uep(end));    
 end
 highway.placeVehicles(vehicles);
 
 % -------------------------------------------------------------------------
 % Run Simulation
 % -------------------------------------------------------------------------
-simulationTime = 150; % seconds
+simulationTime = 10; % seconds
 
 for iIime = 1:simulationTime
     highway.Simulate();

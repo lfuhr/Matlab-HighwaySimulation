@@ -34,7 +34,8 @@ classdef Highway < handle
         
         function placeVehicles(obj, vehicles)
             
-            for vehicle = vehicles
+            for iVehicle = 1:length(vehicles)
+                vehicle=vehicles{iVehicle};
                 if obj.maxLengthTruck < vehicle.length
                     obj.maxLengthTruck = vehicle.length;
                 end
@@ -197,10 +198,6 @@ classdef Highway < handle
                 
         function Accelerate(vehicle)
             vehicle.v = min(vehicle.v + 1, vehicle.vmax);
-        end
-        
-        function y = idxmod(x, indexRange)
-            y = mod(x - 1, indexRange) + 1;
         end
     end
 end
