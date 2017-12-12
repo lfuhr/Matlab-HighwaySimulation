@@ -8,6 +8,7 @@ classdef Highway < handle
         rng
         maxLengthTruck % nur zur Visualisierung
         speedLimit
+        idxCellsMod
     end
     
     methods
@@ -20,6 +21,9 @@ classdef Highway < handle
             
             % Setup Pseudo RNG
             obj.rng = LCG(912915758);
+            
+            % Define idxCellsMod
+            obj.idxCellsMod = @(x) mod(x - 1, nCells) + 1;
         end        
        
         function outputArg = method1(obj,inputArg)
@@ -43,7 +47,7 @@ classdef Highway < handle
                 while ~ isEmpty                    
                     isEmpty = 1;
                     for iVehicleLength = 1:vehicle.length
-                        if ~ isempty(obj.highway{ randLane, obj.idxmod(randCell+1-iVehicleLength, obj.nCells) })
+                        if ~ isempty(obj.highway{ randLane, obj.idxCellsMod(randCell+1-iVehicleLength) })
                             isEmpty = 0;
                             randCell = obj.rng.randi(obj.nCells);
                             randLane = obj.rng.randi(obj.nLanes);
@@ -54,9 +58,9 @@ classdef Highway < handle
                 % Vorderes Ende  =  1 / Hinteres Ende  =  Vehicle.length
                 for iVehicleLength = 1:vehicle.length
                     if iVehicleLength == 1
-                        obj.highway{randLane, obj.idxmod(randCell + 1 - iVehicleLength, obj.nCells)} = vehicle;
+                        obj.highway{randLane, obj.idxCellsMod(randCell + 1 - iVehicleLength)} = vehicle;
                     else
-                        obj.highway{randLane, obj.idxmod(randCell + 1 - iVehicleLength, obj.nCells)} = Vehicle([vehicle.type num2str(iVehicleLength)], 0, 0, 0);
+                        obj.highway{randLane, obj.idxCellsMod(randCell + 1 - iVehicleLength)} = Vehicle([vehicle.type num2str(iVehicleLength)], 0, 0, 0, 0, 0);
                     end
                 end
             end         
@@ -64,61 +68,128 @@ classdef Highway < handle
         
         function Simulate(obj)
            
-            % Zurücksetzen
-            RobustCellFun(@Highway.Reset, obj.highway);
+            % Wechselvariablen zurücksetzen
+            RobustCellFun(@obj.Reset, obj.highway);
    
             % Beschleunigen
-            RobustCellFun(@Highway.Accelerate, obj.highway); 
+            RobustCellFun(@obj.Accelerate, obj.highway); 
                         
             % Wechseln
-            obj.highway = Highway.ChangeLane(obj.highway);
+            obj.highway = obj.ChangeLane(); 
             
             % Bremsen
-            obj.highway = Highway.SlowDown(obj.highway);
+            obj.SlowDown();
             
             % Trödeln
             RobustCellFun(@obj.Dawdle, obj.highway);
             
             % Bewegen
-            obj.highway = obj.Move(obj.highway);
+            obj.highway = obj.Move();
         end
         
+        % Trödeln
         function Dawdle(obj, vehicle)
             vehicle.v = vehicle.v - (vehicle.v ~= 0 && ((obj.rng.rand() - vehicle.troedelwsnlkt) < 0));
         end
         
-        function neueStrasse = Move(obj, altestrasse)
+        % Bewegen
+        function neueStrasse = Move(obj)
             neueStrasse = cell(obj.nLanes, obj.nCells);
             for lane=1:obj.nLanes
                 for zelle = 1:obj.nCells
                     
-                    vehicle = altestrasse{lane, zelle};
-                    if  ~ isempty(vehicle) && (strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW1'))             
+                    vehicle = obj.highway{lane, zelle};
+                    if  ~ isempty(vehicle) && (strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW'))
                         
-                        neueStrasse{lane, idxmod(zelle + vehicle.v, obj.nCells)} = vehicle;
-                        if strcmp(vehicle.type, 'LKW1')
+                        neueStrasse{lane, obj.idxCellsMod(zelle + vehicle.v)} = vehicle;
+                        if strcmp(vehicle.type, 'LKW')
                             for iTruck = 1:vehicle.length - 1
-                                neueStrasse{lane, idxmod(zelle + vehicle.v-iTruck, obj.nCells)} ...
-                                    = altestrasse{lane,idxmod(zelle - iTruck, obj.nCells)};
+                                neueStrasse{lane, obj.idxCellsMod(zelle + vehicle.v-iTruck)} ...
+                                    = obj.highway{lane,obj.idxCellsMod(zelle - iTruck)};
                             end
                         end
-        
+                        
                     end
                     
                 end
             end
         end
         
+        %CheckLane
+        function iBlocked = CheckLane(obj, lane, zelle, startv, endv )
+                        
+            iBlocked = endv+1;            
+            
+            for idx=startv:endv
+                if ~isempty(obj.highway{lane, obj.idxCellsMod(zelle+idx)})                    
+                    iBlocked = idx;
+                    return;
+                end
+            end
+            
+        end
+        
+        %Bremsen
+        function SlowDown(obj)
+            
+            for lane=1:obj.nLanes
+                for zelle = 1:obj.nCells                    
+                    vehicle = obj.highway{lane, zelle};                    
+                    if  ~ isempty(vehicle)
+                        if strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW')      
+                            vehicle.v = obj.CheckLane(lane, zelle, 1, vehicle.v) - 1;                            
+                        end
+                    end
+                end
+            end
+
+        end
+        
+        %Wechseln
+        function neueStrasse = ChangeLane(obj)
+            neueStrasse = cell(obj.nLanes, obj.nCells);
+            for lane=1:obj.nLanes
+                for zelle = 1:obj.nCells
+                    vehicle = obj.highway{lane, zelle};
+                    if  ~ isempty(vehicle)
+                        if strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW')
+                            % Spur wechseln
+                            tempLane = lane;
+                            
+                            %Auf aktueller Spur muss gebremst werden
+                            if obj.CheckLane(lane, zelle, 1, vehicle.v) <= vehicle.v
+                                %Nach links wechslen, wenn genau links neben Auto frei
+                                if lane>1 && obj.CheckLane(lane-1, zelle, -vehicle.vmax, vehicle.v) > vehicle.v &&...
+                                        rand(vehicle.ueberholwsnlkt)
+                                    tempLane=lane-1;
+                                    vehicle.gewechselt=-1;
+                                end
+                            end
+                            
+                            % Nach rechts wechseln
+                            %Nach rechts wechseln, wenn genau rechts neben Auto frei
+                            if lane < obj.nLanes && rand(vehicle.ueberholwsnlkt) &&...
+                                    obj.CheckLane(lane+1, zelle, -vehicle.length+1, vehicle.v) > vehicle.v %rechte Spur ist frei
+                                tempLane=lane+1;
+                                vehicle.gewechselt=+1;
+                            end
+                            
+                            
+                            neueStrasse{tempLane,zelle} = vehicle;
+                            if strcmp(vehicle.type,'LKW')
+                                for iTruck=1:vehicle.length-1
+                                    neueStrasse{tempLane,obj.idxCellsMod(zelle-iTruck)} ...
+                                        = obj.highway{lane,obj.idxCellsMod(zelle-iTruck)};
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        
     end
-    methods (Static)
-        
-        function highway = ChangeLane(highway)
-            % not implemented
-        end
-        
-        function highway = SlowDown(highway)
-            % not implemented
-        end
+    methods (Static)               
         
         function Reset(vehicle)
             vehicle.gewechselt = 0;
