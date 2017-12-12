@@ -112,6 +112,12 @@ classdef Highway < handle
     end
     methods (Static)
         
+        function indices = getIndices(cellArray)
+            s = size(cellArray);
+            [X,Y] = meshgrid(1:s(1),1:s(2));
+            indices = num2cell([X(:) Y(:)],2);
+        end
+        
         function highway = ChangeLane(highway)
             % not implemented
         end
