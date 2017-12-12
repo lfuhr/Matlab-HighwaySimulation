@@ -6,16 +6,19 @@ classdef Vehicle < handle
         vmax
         gewechselt
         length
-        troedelwsnlkt = 0
+        troedelwsnlkt 
+        ueberholwsnlkt 
     end 
     
     methods
-        function vehicle = Vehicle(type, length, v, vmax)
-            vehicle.type = type;
-            vehicle.v = v;
-            vehicle.vmax = vmax;
-            vehicle.gewechselt = 0; % Mainly for visualization
-            vehicle.length = length;
+        function obj = Vehicle(type, length, v, vmax, tp , uep)
+            obj.type = type;
+            obj.v = v;
+            obj.vmax = vmax;
+            obj.gewechselt = 0; % Mainly for visualization
+            obj.length = length;
+            obj.troedelwsnlkt = tp;
+            obj.ueberholwsnlkt = uep;
         end
     end
 end
