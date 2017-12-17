@@ -6,7 +6,6 @@ classdef Highway < handle
         nCells
         highway
         rng
-        maxLengthTruck % nur zur Visualisierung
         speedLimit
         idxCellsMod
     end
@@ -17,7 +16,6 @@ classdef Highway < handle
             obj.nCells = nCells;
             obj.highway = cell(nLanes,nCells);
             obj.speedLimit = 0;
-            obj.maxLengthTruck = 0;
             
             % Setup Pseudo RNG
             obj.rng = LCG(912915758);
@@ -36,9 +34,6 @@ classdef Highway < handle
             
             for iVehicle = 1:length(vehicles)
                 vehicle=vehicles{iVehicle};
-                if obj.maxLengthTruck < vehicle.length
-                    obj.maxLengthTruck = vehicle.length;
-                end
                 
                 randCell = obj.rng.randi(obj.nCells);
                 randLane = obj.rng.randi(obj.nLanes);
@@ -86,6 +81,7 @@ classdef Highway < handle
             
             % Bewegen
             obj.highway = obj.Move();
+            % obj.Move3(); // cellfun alternative
         end
         
         % Trödeln
@@ -115,6 +111,28 @@ classdef Highway < handle
                 end
             end
         end
+        
+        % Cellfun alternative for to move
+%         function Move3(obj)
+%             alteStrasse = obj.highway;
+%             obj.highway = cell(obj.nLanes, obj.nCells);
+%             cellfun(@(x)obj.Move2(x, alteStrasse), obj.getIndices(obj.highway))
+%         end
+%         function Move2(obj,indices, altestrasse)
+%                 lane = indices(1);
+%                 zelle = indices(2);
+%                 vehicle = altestrasse{lane, zelle};
+%                 if  ~ isempty(vehicle) && (strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW'))
+%                     obj.highway{lane, obj.idxCellsMod(zelle + vehicle.v)} = vehicle;
+%                     if strcmp(vehicle.type, 'LKW')
+%                         for iTruck = 1:vehicle.length - 1
+%                             obj.highway{lane, obj.idxCellsMod(zelle + vehicle.v-iTruck)} ...
+%                                 = altestrasse{lane,obj.idxCellsMod(zelle - iTruck)};
+%                         end
+%                     end
+% 
+%                 end
+%         end
         
         %CheckLane
         function iBlocked = CheckLane(obj, lane, zelle, startv, endv )
