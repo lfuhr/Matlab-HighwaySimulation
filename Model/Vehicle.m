@@ -1,4 +1,4 @@
-classdef Vehicle
+classdef Vehicle < handle
     
     properties
         type
@@ -6,19 +6,19 @@ classdef Vehicle
         vmax
         gewechselt
         length
+        troedelwsnlkt 
+        ueberholwsnlkt 
     end 
     
     methods
-        function vehicle = Vehicle(type, length, v, vmax)
-            vehicle.type = type;
-            vehicle.v = v;
-            vehicle.vmax = vmax;
-            vehicle.gewechselt = 0; % Mainly for visualization
-            vehicle.length = length;
-        end
-        
-        function vehicle = Accelerate(vehicle)
-            vehicle.v = min(vehicle.v + 1, vehicle.vmax);
+        function obj = Vehicle(type, length, v, vmax, tp , uep)
+            obj.type = type;
+            obj.v = v;
+            obj.vmax = vmax;
+            obj.gewechselt = 0; % Mainly for visualization
+            obj.length = length;
+            obj.troedelwsnlkt = tp;
+            obj.ueberholwsnlkt = uep;
         end
     end
 end

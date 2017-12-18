@@ -20,7 +20,8 @@ axis([0 zellen*7.5 0 Spur*30])
 lengthZelle = 7.5;
 
 for frame = 1:fps
-    clf
+    hold off
+    plot(0,0);
     hold on
     axis equal
     axis off
@@ -44,7 +45,7 @@ for frame = 1:fps
     for i=1:Spur
         for j=1:zellen
             if ~isempty(strasse{i,j})
-                if(strcmp(strasse{i,j}.type, 'LKW1'))% && str2double(strasse{i,j}.type(end))==1)
+                if(strcmp(strasse{i,j}.type, 'LKW'))% && str2double(strasse{i,j}.type(end))==1)
                     car = rectangle('Position',[idxmod(((j-strasse{i,j}.v)+dt*frame*strasse{i,j}.v)*lengthZelle,zellen*7.5)-(strasse{i,j}.length-1)*lengthZelle ...
                         -(HoeheStrasse+BreiteSpur*(1/2+i-strasse{i,j}.gewechselt-1)+BreiteSpur*frame*dt*strasse{i,j}.gewechselt) 4*strasse{i,j}.length 2]);
                     set(car, 'FaceColor', 'black','EdgeColor', 'black')
