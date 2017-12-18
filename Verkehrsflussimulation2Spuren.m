@@ -3,22 +3,23 @@ addpath Model;
 addpath Visualization;
 
 figure('units', 'normalized', 'outerposition', [0 0 1 1])
-lanes = 3; %Anzahl an Spuren
+lanes = 1; %Anzahl an Spuren
 nCells = 100; %Länge der Strecke
 
 vmaxCars = [5 6 7 8 9]; %Max Geschwindigkeit PKW
 maxVMax = max(vmaxCars);
 rV = [0.16 0.2 0.5]; %Mittlere Dichte Fahrzeuge
-rhoVehicles = rV(3);
+% rhoVehicles = rV(3);
+rhoVehicles = 0.5;
 
 vMaxTruck = 3; %Max Geschwindigkeit LKW
 rT = [0.2 0.5 0.8]; % prozentualer Anteil an LKW
 ratioTrucks = rT(1);
-lengthTrucks = [3 6]; %Zellenlänge pro LKW
+lengthTrucks = [3 3]; %Zellenlänge pro LKW
 maxLengthTrucks = max(lengthTrucks);
 
-tp = [0 0.2 0.5 0.8]; %Trödelwahrscheinlichkeit
-troedelwsnlkt = tp(2);
+tp = [0 0.2 0.5 0.6]; %Trödelwahrscheinlichkeit
+troedelwsnlkt = tp(4);
 
 op = [0 0.2 0.5 0.8 1]; %Überholwahrscheinlichkeit
 ueberholwsnlkt = op(end);
@@ -37,7 +38,6 @@ idxmod  =  @(x, indexRange) mod(x - 1, indexRange) + 1;
 rng = LCG(912915758);
 rand = rng.random;
 randi = @(x) ceil(x * rng.random);
-
 
 %Initialize
 sumTrucks = 0;
@@ -196,7 +196,11 @@ for iIime = 1:simulationTime
     end
     strasse = neueStrasse;
     
-    animateHighway(strasse,maxLengthTrucks);
+    
+%     subplot(2,1,1)
+%     animateHighway(strasse,maxLengthTrucks);
+%     subplot(2,1,2)
+    [Dichte(iIime), Fluss(iIime), v(iIime)] = checkDichteFluss(strasse,[1,10]);
     strasse = RobustCellFun(@reset,strasse);
     
     
@@ -219,8 +223,18 @@ for iIime = 1:simulationTime
     
 end
 
+figure
+plot(1:simulationTime,v)
 
+% figure
+% plot(1:simulationTime,Dichte)
+% % 
+% figure
+% plot(1:simulationTime,Fluss)
+% % 
+% figure
 
+plot(Fluss(:),v(:), '*r')
 
 function vehicle = reset(vehicle)
         vehicle.gewechselt=0;
