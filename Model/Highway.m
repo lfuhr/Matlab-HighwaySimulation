@@ -26,6 +26,7 @@ classdef Highway < handle
             obj.idxCellsMod = @(x) mod(x - 1, nCells) + 1;
         end        
        
+        
         function outputArg = method1(obj,inputArg)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
@@ -40,8 +41,10 @@ classdef Highway < handle
                     obj.maxLengthTruck = vehicle.length;
                 end
                 
-                randCell = obj.rng.randi(obj.nCells);
-                randLane = obj.rng.randi(obj.nLanes);
+%                 randCell = obj.rng.randi(obj.nCells);
+%                 randLane = obj.rng.randi(obj.nLanes);
+                randCell = randi(obj.nCells);
+                randLane = randi(obj.nLanes);
                 
                 % Finde Lücke die für Fahrzeug groß genug ist                  
                 isEmpty = 0;                
@@ -50,8 +53,10 @@ classdef Highway < handle
                     for iVehicleLength = 1:vehicle.length
                         if ~ isempty(obj.highway{ randLane, obj.idxCellsMod(randCell+1-iVehicleLength) })
                             isEmpty = 0;
-                            randCell = obj.rng.randi(obj.nCells);
-                            randLane = obj.rng.randi(obj.nLanes);
+%                             randCell = obj.rng.randi(obj.nCells);
+%                             randLane = obj.rng.randi(obj.nLanes);
+                            randCell = randi(obj.nCells);
+                            randLane = randi(obj.nLanes);
                         end
                     end
                 end
@@ -90,7 +95,8 @@ classdef Highway < handle
         
         % Trödeln
         function Dawdle(obj, vehicle)
-            vehicle.v = vehicle.v - (vehicle.v ~= 0 && ((obj.rng.rand() - vehicle.troedelwsnlkt) < 0));
+%             vehicle.v = vehicle.v - (vehicle.v ~= 0 && ((obj.rng.rand() - vehicle.troedelwsnlkt) < 0));
+            vehicle.v = vehicle.v - (vehicle.v ~= 0 && ((rand() - vehicle.troedelwsnlkt) < 0));
         end
         
         % Bewegen
