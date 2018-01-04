@@ -8,28 +8,21 @@ classdef Highway < handle
         rng
         speedLimit
         idxCellsMod
+        useCellfun
     end
     
     methods
-        function obj = Highway(nLanes, nCells)
+        function obj = Highway(nLanes, nCells, rng, varargin)
             obj.nLanes = nLanes;
             obj.nCells = nCells;
             obj.highway = cell(nLanes,nCells);
             obj.speedLimit = 0;
-            
-            % Setup Pseudo RNG
-            obj.rng = LCG(912915758);
+            obj.rng = rng;
+            obj.useCellfun = nargin > 3;
             
             % Define idxCellsMod
             obj.idxCellsMod = @(x) mod(x - 1, nCells) + 1;
         end        
-       
-        
-        function outputArg = method1(obj,inputArg)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            outputArg = obj.Property1 + inputArg;
-        end
         
         function placeVehicles(obj, vehicles)
             
@@ -86,7 +79,7 @@ classdef Highway < handle
             
             % Bewegen
             obj.highway = obj.Move();
-            % obj.Move3(); // cellfun alternative
+            % obj.Move2(); // cellfun alternative
         end
         
         % Trödeln
@@ -119,12 +112,12 @@ classdef Highway < handle
         end
         
         % Cellfun alternative for to move
-%         function Move3(obj)
+%         function Move2(obj)
 %             alteStrasse = obj.highway;
 %             obj.highway = cell(obj.nLanes, obj.nCells);
-%             cellfun(@(x)obj.Move2(x, alteStrasse), obj.getIndices(obj.highway))
+%             cellfun(@(x)obj.Move2Aux(x, alteStrasse), obj.getIndices(obj.highway))
 %         end
-%         function Move2(obj,indices, altestrasse)
+%         function Move2Aux(obj,indices, altestrasse) 
 %                 lane = indices(1);
 %                 zelle = indices(2);
 %                 vehicle = altestrasse{lane, zelle};
