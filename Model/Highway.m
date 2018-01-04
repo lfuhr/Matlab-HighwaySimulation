@@ -22,12 +22,12 @@ classdef Highway < handle
             
             % Define idxCellsMod
             obj.idxCellsMod = @(x) mod(x - 1, nCells) + 1;
-        end        
-        
+        end
+
         function placeVehicles(obj, vehicles)
             
             for iVehicle = 1:length(vehicles)
-                vehicle=vehicles{iVehicle};
+                vehicle = vehicles{iVehicle};
                 
                 randCell = obj.rng.randi(obj.nCells);
                 randLane = obj.rng.randi(obj.nLanes);
@@ -56,26 +56,76 @@ classdef Highway < handle
             end         
         end % function placeVehicles
         
-        function Simulate(obj)
-           
+        function Simulate(obj)  
+            if (obj.useCellfun)
+                obj.SimulateUsingCellfun
+            else
+                obj.SimulateUsingFor
+            end
+        end
+        
+        
+        function SimulateUsingCellfun(obj)
+            
             % Wechselvariablen zurücksetzen
             RobustCellFun(@obj.Reset, obj.highway);
-   
+
             % Beschleunigen
             RobustCellFun(@obj.Accelerate, obj.highway); 
-                        
+
             % Wechseln
             obj.highway = obj.ChangeLane(); 
-            
+
             % Bremsen
             obj.SlowDown();
-            
+
             % Trödeln
             RobustCellFun(@obj.Dawdle, obj.highway);
-            
+
             % Bewegen
-            obj.highway = obj.Move();
-            % obj.Move2(); // cellfun alternative
+            obj.Move2();
+        end
+        
+        
+        function SimulateUsingFor(obj)
+            
+            neueStrasse = cell(obj.nLanes, obj.nCells);
+            for lane=1:obj.nLanes
+                for zelle = 1:obj.nCells                    
+                    vehicle = obj.highway{lane, zelle};                    
+                    if  ~ isempty(vehicle)
+
+                        % Beschleunigen
+                        Highway.Accelerate(vehicle); 
+
+                        % Wechseln
+                        obj.ChangeLane(lane, zelle, vehicle, neueStrasse); 
+
+                    end
+                end
+            end
+            obj.highway = neueStrasse;
+            
+            neueStrasse = cell(obj.nLanes, obj.nCells);
+            for lane=1:obj.nLanes
+                for zelle = 1:obj.nCells                    
+                    vehicle = obj.highway{lane, zelle};                    
+                    if  ~ isempty(vehicle)
+
+                        % Bremsen
+                        SlowDown(lane, zelle, vehicle)
+
+                        % Trödeln
+                        Dawdle(vehicle);
+
+                        % Bewegen
+                        Move(lane, zelle, vehicle, neueStrasse);
+
+                    end
+                end
+            end
+            obj.highway = neueStrasse;
+            
         end
         
         % Trödeln
@@ -84,49 +134,41 @@ classdef Highway < handle
         end
         
         % Bewegen
-        function neueStrasse = Move(obj)
-            neueStrasse = cell(obj.nLanes, obj.nCells);
-            for lane=1:obj.nLanes
-                for zelle = 1:obj.nCells
-                    
-                    vehicle = obj.highway{lane, zelle};
-                    if  ~ isempty(vehicle) && (strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW'))
-                        
-                        neueStrasse{lane, obj.idxCellsMod(zelle + vehicle.v)} = vehicle;
-                        if strcmp(vehicle.type, 'LKW')
-                            for iTruck = 1:vehicle.length - 1
-                                neueStrasse{lane, obj.idxCellsMod(zelle + vehicle.v-iTruck)} ...
-                                    = obj.highway{lane,obj.idxCellsMod(zelle - iTruck)};
-                            end
-                        end
-                        
+        function Move(obj, lane, zelle, vehicle, neueStrasse)
+            if (strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW'))
+
+                neueStrasse{lane, obj.idxCellsMod(zelle + vehicle.v)} = vehicle;
+                if strcmp(vehicle.type, 'LKW')
+                    for iTruck = 1:vehicle.length - 1
+                        neueStrasse{lane, obj.idxCellsMod(zelle + vehicle.v-iTruck)} ...
+                            = obj.highway{lane,obj.idxCellsMod(zelle - iTruck)};
                     end
-                    
                 end
+
             end
         end
         
-        % Cellfun alternative for to move
-%         function Move2(obj)
-%             alteStrasse = obj.highway;
-%             obj.highway = cell(obj.nLanes, obj.nCells);
-%             cellfun(@(x)obj.Move2Aux(x, alteStrasse), obj.getIndices(obj.highway))
-%         end
-%         function Move2Aux(obj,indices, altestrasse) 
-%                 lane = indices(1);
-%                 zelle = indices(2);
-%                 vehicle = altestrasse{lane, zelle};
-%                 if  ~ isempty(vehicle) && (strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW'))
-%                     obj.highway{lane, obj.idxCellsMod(zelle + vehicle.v)} = vehicle;
-%                     if strcmp(vehicle.type, 'LKW')
-%                         for iTruck = 1:vehicle.length - 1
-%                             obj.highway{lane, obj.idxCellsMod(zelle + vehicle.v-iTruck)} ...
-%                                 = altestrasse{lane,obj.idxCellsMod(zelle - iTruck)};
-%                         end
-%                     end
-% 
-%                 end
-%         end
+        % Alternative for Move() using Cellfun
+        function Move2(obj)
+            alteStrasse = obj.highway;
+            obj.highway = cell(obj.nLanes, obj.nCells);
+            cellfun(@(x)obj.Move2Aux(x, alteStrasse), obj.getIndices(obj.highway))
+        end
+        function Move2Aux(obj,indices, altestrasse) 
+                lane = indices(1);
+                zelle = indices(2);
+                vehicle = altestrasse{lane, zelle};
+                if  ~ isempty(vehicle) && (strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW'))
+                    obj.highway{lane, obj.idxCellsMod(zelle + vehicle.v)} = vehicle;
+                    if strcmp(vehicle.type, 'LKW')
+                        for iTruck = 1:vehicle.length - 1
+                            obj.highway{lane, obj.idxCellsMod(zelle + vehicle.v-iTruck)} ...
+                                = altestrasse{lane,obj.idxCellsMod(zelle - iTruck)};
+                        end
+                    end
+
+                end
+        end
         
         %CheckLane
         function iBlocked = CheckLane(obj, lane, zelle, startv, endv )
@@ -144,64 +186,49 @@ classdef Highway < handle
         
 
         %Bremsen
-        function SlowDown(obj)
-            
-            for lane=1:obj.nLanes
-                for zelle = 1:obj.nCells                    
-                    vehicle = obj.highway{lane, zelle};                    
-                    if  ~ isempty(vehicle)
-                        if strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW')      
-                            vehicle.v = obj.CheckLane(lane, zelle, 1, vehicle.v) - 1;                            
-                        end
-                    end
-                end
+        function SlowDown(lane, zelle, vehicle)            
+            if strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW')      
+                vehicle.v = obj.CheckLane(lane, zelle, 1, vehicle.v) - 1;                            
             end
-
         end
         
         %Wechseln
-        function neueStrasse = ChangeLane(obj)
-            neueStrasse = cell(obj.nLanes, obj.nCells);
-            for lane=1:obj.nLanes
-                for zelle = 1:obj.nCells
-                    vehicle = obj.highway{lane, zelle};
-                    if  ~ isempty(vehicle)
-                        if strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW')
-                            % Spur wechseln
-                            tempLane = lane;
-                            
-                            %Auf aktueller Spur muss gebremst werden
-                            if obj.CheckLane(lane, zelle, 1, vehicle.v) <= vehicle.v
-                                %Nach links wechslen, wenn genau links neben Auto frei
-                                if lane>1 && obj.CheckLane(lane-1, zelle, -vehicle.vmax, vehicle.v) > vehicle.v &&...
-                                        obj.rng.rand(vehicle.ueberholwsnlkt)
-                                    tempLane=lane-1;
-                                    vehicle.gewechselt=-1;
-                                end
-                            end
-                            
-                            % Nach rechts wechseln
-                            %Nach rechts wechseln, wenn genau rechts neben Auto frei
-                            if lane < obj.nLanes && obj.rng.rand(vehicle.ueberholwsnlkt) &&...
-                                    obj.CheckLane(lane+1, zelle, -vehicle.length+1, vehicle.v) > vehicle.v %rechte Spur ist frei
-                                tempLane=lane+1;
-                                vehicle.gewechselt=+1;
-                            end
-                            
-                            
-                            neueStrasse{tempLane,zelle} = vehicle;
-                            if strcmp(vehicle.type,'LKW')
-                                for iTruck=1:vehicle.length-1
-                                    neueStrasse{tempLane,obj.idxCellsMod(zelle-iTruck)} ...
-                                        = obj.highway{lane,obj.idxCellsMod(zelle-iTruck)};
-                                end
-                            end
-                        end
+        function ChangeLane(obj, lane, zelle, vehicle, neueStrasse)
+            if strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW')
+
+                vehicle.gewechselt = 0;
+
+                % Spur wechseln
+                tempLane = lane;
+
+                %Auf aktueller Spur muss gebremst werden
+                if obj.CheckLane(lane, zelle, 1, vehicle.v) <= vehicle.v
+                    %Nach links wechslen, wenn genau links neben Auto frei
+                    if lane>1 && obj.CheckLane(lane-1, zelle, -vehicle.vmax, vehicle.v) > vehicle.v &&...
+                            obj.rng.rand(vehicle.ueberholwsnlkt)
+                        tempLane=lane-1;
+                        vehicle.gewechselt=-1;
+                    end
+                end
+
+                % Nach rechts wechseln
+                %Nach rechts wechseln, wenn genau rechts neben Auto frei
+                if lane < obj.nLanes && obj.rng.rand(vehicle.ueberholwsnlkt) &&...
+                        obj.CheckLane(lane+1, zelle, -vehicle.length+1, vehicle.v) > vehicle.v %rechte Spur ist frei
+                    tempLane=lane+1;
+                    vehicle.gewechselt=+1;
+                end
+
+
+                neueStrasse{tempLane,zelle} = vehicle;
+                if strcmp(vehicle.type,'LKW')
+                    for iTruck=1:vehicle.length-1
+                        neueStrasse{tempLane,obj.idxCellsMod(zelle-iTruck)} ...
+                            = obj.highway{lane,obj.idxCellsMod(zelle-iTruck)};
                     end
                 end
             end
         end
-        
     end
     methods (Static)               
 
