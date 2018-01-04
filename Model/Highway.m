@@ -29,10 +29,8 @@ classdef Highway < handle
             for iVehicle = 1:length(vehicles)
                 vehicle=vehicles{iVehicle};
                 
-%                 randCell = obj.rng.randi(obj.nCells);
-%                 randLane = obj.rng.randi(obj.nLanes);
-                randCell = randi(obj.nCells);
-                randLane = randi(obj.nLanes);
+                randCell = obj.rng.randi(obj.nCells);
+                randLane = obj.rng.randi(obj.nLanes);
                 
                 % Finde Lücke die für Fahrzeug groß genug ist                  
                 isEmpty = 0;                
@@ -41,10 +39,8 @@ classdef Highway < handle
                     for iVehicleLength = 1:vehicle.length
                         if ~ isempty(obj.highway{ randLane, obj.idxCellsMod(randCell+1-iVehicleLength) })
                             isEmpty = 0;
-%                             randCell = obj.rng.randi(obj.nCells);
-%                             randLane = obj.rng.randi(obj.nLanes);
-                            randCell = randi(obj.nCells);
-                            randLane = randi(obj.nLanes);
+                            randCell = obj.rng.randi(obj.nCells);
+                            randLane = obj.rng.randi(obj.nLanes);
                         end
                     end
                 end
@@ -84,8 +80,7 @@ classdef Highway < handle
         
         % Trödeln
         function Dawdle(obj, vehicle)
-%             vehicle.v = vehicle.v - (vehicle.v ~= 0 && ((obj.rng.rand() - vehicle.troedelwsnlkt) < 0));
-            vehicle.v = vehicle.v - (vehicle.v ~= 0 && ((rand() - vehicle.troedelwsnlkt) < 0));
+            vehicle.v = vehicle.v - (vehicle.v ~= 0 && ((obj.rng.rand() - vehicle.troedelwsnlkt) < 0));
         end
         
         % Bewegen
@@ -179,7 +174,7 @@ classdef Highway < handle
                             if obj.CheckLane(lane, zelle, 1, vehicle.v) <= vehicle.v
                                 %Nach links wechslen, wenn genau links neben Auto frei
                                 if lane>1 && obj.CheckLane(lane-1, zelle, -vehicle.vmax, vehicle.v) > vehicle.v &&...
-                                        rand(vehicle.ueberholwsnlkt)
+                                        obj.rng.rand(vehicle.ueberholwsnlkt)
                                     tempLane=lane-1;
                                     vehicle.gewechselt=-1;
                                 end
@@ -187,7 +182,7 @@ classdef Highway < handle
                             
                             % Nach rechts wechseln
                             %Nach rechts wechseln, wenn genau rechts neben Auto frei
-                            if lane < obj.nLanes && rand(vehicle.ueberholwsnlkt) &&...
+                            if lane < obj.nLanes && obj.rng.rand(vehicle.ueberholwsnlkt) &&...
                                     obj.CheckLane(lane+1, zelle, -vehicle.length+1, vehicle.v) > vehicle.v %rechte Spur ist frei
                                 tempLane=lane+1;
                                 vehicle.gewechselt=+1;
