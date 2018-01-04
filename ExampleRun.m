@@ -7,7 +7,7 @@ addpath Visualization;
 % -------------------------------------------------------------------------
 % Create highway model
 % -------------------------------------------------------------------------
-nLanes = 3;                 %Anzahl an Spuren
+nLanes = 1;                 %Anzahl an Spuren
 nCells = 100;               %Länge der Strecke
 highway = Highway(nLanes, nCells);
 

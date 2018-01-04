@@ -1,4 +1,4 @@
-function [density] = SaveDensity(obj)
+function [density] = SaveFlux(obj)
 
 tempV = 0;
 vehicleCount = 0;

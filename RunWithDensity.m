@@ -30,11 +30,13 @@ subplot(2,1,2)
 hold on;
 
 
-steps = 500;
+steps = 100;
 
+%Initialisierung mit verschiedenen Trödelwahrscheinlichkeiten
 for iTp = 1:length(tp)
     
     density = zeros(steps,2);
+    rhoHighway = zeros(steps,1);
     
     for iRhoPKW = 1 : steps
         rhoPkw = iRhoPKW/steps;
@@ -54,9 +56,11 @@ for iTp = 1:length(tp)
         
         for iVehicle = nLkw+1 : (nLkw+nPkw)
             %             iPkwVMax = highway.rng.randi(3) + 3; % 4-6
-            %             vehicles{iVehicle} = Vehicle('PKW', 1, highway.rng.randi(iPkwVMax), iPkwVMax, tp(iTp), uep(end));
             iPkwVMax = 5; % 4-6
-            vehicles{iVehicle} = Vehicle('PKW', 1, randi(iPkwVMax), iPkwVMax, tp(iTp), uep(end));
+            % LCG Random Function            
+            vehicles{iVehicle} = Vehicle('PKW', 1, highway.rng.randi(iPkwVMax), iPkwVMax, tp(iTp), uep(end));
+            %Matlab Random Function
+%             vehicles{iVehicle} = Vehicle('PKW', 1, randi(iPkwVMax), iPkwVMax, tp(iTp), uep(end));
         end
         highway.placeVehicles(vehicles);
         
@@ -67,12 +71,13 @@ for iTp = 1:length(tp)
         
         % localIntervall = [1 100];
         
-        for iIime = 1:simulationTime
+        for iTime = 1:simulationTime
             highway.Simulate();
             %     animateHighway(highway.highway,highway.maxLengthTruck);
             % do some other analysis
         end
-        density(iRhoPKW,:) = SaveDensity(highway);
+        density(iRhoPKW,:) = SaveFlux(highway);
+        rhoHighway(iRhoPKW) = (nPkw+nLkw)/(nLanes*nCells);
     end
     
     % Print some end result
@@ -80,10 +85,10 @@ for iTp = 1:length(tp)
     
     for iDensity = 1:length(density)
         subplot(2,1,1)
-        plot(iDensity,density(iDensity,1),[colors{iTp} 'o']);
+        plot(rhoHighway(iDensity),density(iDensity,1),[colors{iTp} 'o']);
         ylabel('mean(v) / cell/sec');
         subplot(2,1,2)
-        plot(iDensity,density(iDensity,2),[colors{iTp} 'o']);
+        plot(rhoHighway(iDensity),density(iDensity,2),[colors{iTp} 'o']);
         xlabel('Dichte/ rho');
         ylabel('Fluss');
     end
