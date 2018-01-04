@@ -8,38 +8,29 @@ classdef Highway < handle
         rng
         speedLimit
         idxCellsMod
+        useCellfun
     end
     
     methods
-        function obj = Highway(nLanes, nCells)
+        function obj = Highway(nLanes, nCells, rng, varargin)
             obj.nLanes = nLanes;
             obj.nCells = nCells;
             obj.highway = cell(nLanes,nCells);
             obj.speedLimit = 0;
-            
-            % Setup Pseudo RNG
-            obj.rng = LCG(912915758);
+            obj.rng = rng;
+            obj.useCellfun = nargin > 3;
             
             % Define idxCellsMod
             obj.idxCellsMod = @(x) mod(x - 1, nCells) + 1;
         end        
-       
-        
-        function outputArg = method1(obj,inputArg)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            outputArg = obj.Property1 + inputArg;
-        end
         
         function placeVehicles(obj, vehicles)
             
             for iVehicle = 1:length(vehicles)
                 vehicle=vehicles{iVehicle};
                 
-%                 randCell = obj.rng.randi(obj.nCells);
-%                 randLane = obj.rng.randi(obj.nLanes);
-                randCell = randi(obj.nCells);
-                randLane = randi(obj.nLanes);
+                randCell = obj.rng.randi(obj.nCells);
+                randLane = obj.rng.randi(obj.nLanes);
                 
                 % Finde Lücke die für Fahrzeug groß genug ist                  
                 isEmpty = 0;                
@@ -48,10 +39,8 @@ classdef Highway < handle
                     for iVehicleLength = 1:vehicle.length
                         if ~ isempty(obj.highway{ randLane, obj.idxCellsMod(randCell+1-iVehicleLength) })
                             isEmpty = 0;
-%                             randCell = obj.rng.randi(obj.nCells);
-%                             randLane = obj.rng.randi(obj.nLanes);
-                            randCell = randi(obj.nCells);
-                            randLane = randi(obj.nLanes);
+                            randCell = obj.rng.randi(obj.nCells);
+                            randLane = obj.rng.randi(obj.nLanes);
                         end
                     end
                 end
@@ -86,13 +75,12 @@ classdef Highway < handle
             
             % Bewegen
             obj.highway = obj.Move();
-            % obj.Move3(); // cellfun alternative
+            % obj.Move2(); // cellfun alternative
         end
         
         % Trödeln
         function Dawdle(obj, vehicle)
-%             vehicle.v = vehicle.v - (vehicle.v ~= 0 && ((obj.rng.rand() - vehicle.troedelwsnlkt) < 0));
-            vehicle.v = vehicle.v - (vehicle.v ~= 0 && ((rand() - vehicle.troedelwsnlkt) < 0));
+            vehicle.v = vehicle.v - (vehicle.v ~= 0 && ((obj.rng.rand() - vehicle.troedelwsnlkt) < 0));
         end
         
         % Bewegen
@@ -119,12 +107,12 @@ classdef Highway < handle
         end
         
         % Cellfun alternative for to move
-%         function Move3(obj)
+%         function Move2(obj)
 %             alteStrasse = obj.highway;
 %             obj.highway = cell(obj.nLanes, obj.nCells);
-%             cellfun(@(x)obj.Move2(x, alteStrasse), obj.getIndices(obj.highway))
+%             cellfun(@(x)obj.Move2Aux(x, alteStrasse), obj.getIndices(obj.highway))
 %         end
-%         function Move2(obj,indices, altestrasse)
+%         function Move2Aux(obj,indices, altestrasse) 
 %                 lane = indices(1);
 %                 zelle = indices(2);
 %                 vehicle = altestrasse{lane, zelle};
@@ -186,7 +174,7 @@ classdef Highway < handle
                             if obj.CheckLane(lane, zelle, 1, vehicle.v) <= vehicle.v
                                 %Nach links wechslen, wenn genau links neben Auto frei
                                 if lane>1 && obj.CheckLane(lane-1, zelle, -vehicle.vmax, vehicle.v) > vehicle.v &&...
-                                        rand(vehicle.ueberholwsnlkt)
+                                        obj.rng.rand(vehicle.ueberholwsnlkt)
                                     tempLane=lane-1;
                                     vehicle.gewechselt=-1;
                                 end
@@ -194,7 +182,7 @@ classdef Highway < handle
                             
                             % Nach rechts wechseln
                             %Nach rechts wechseln, wenn genau rechts neben Auto frei
-                            if lane < obj.nLanes && rand(vehicle.ueberholwsnlkt) &&...
+                            if lane < obj.nLanes && obj.rng.rand(vehicle.ueberholwsnlkt) &&...
                                     obj.CheckLane(lane+1, zelle, -vehicle.length+1, vehicle.v) > vehicle.v %rechte Spur ist frei
                                 tempLane=lane+1;
                                 vehicle.gewechselt=+1;
