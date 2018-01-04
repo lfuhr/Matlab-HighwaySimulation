@@ -7,9 +7,9 @@ addpath Visualization;
 % -------------------------------------------------------------------------
 % Create highway model
 % -------------------------------------------------------------------------
-nLanes = 1;                 %Anzahl an Spuren
+nLanes = 2;                 %Anzahl an Spuren
 nCells = 100;               %Länge der Strecke
-highway = Highway(nLanes, nCells);
+% highway = Highway(nLanes, nCells);
 
 tp = [0 0.2 0.5 0.8 1]; %Trödelwahrscheinlichkeiten
 
@@ -20,9 +20,14 @@ colors={'blue' 'magenta' 'cyan' 'red' 'black'};
 % Initialize Highway with Vehicles
 % -------------------------------------------------------------------------
 
-rhoPkw = .01;
-rhoLkw = .0;
+% rhoPkw + rhoLkw <= 1 !
+staticRhoLkw = [0 0.2 0.5 0.8 1];
+staticRhoPkw = 1-staticRhoLkw;
 
+sizeLkw = 2;
+
+for nLanes=1:2
+    figure
 % clf;
 subplot(2,1,1)
 hold on;
@@ -30,37 +35,39 @@ subplot(2,1,2)
 hold on;
 
 
-steps = 100;
+rhoSteps = 200;
 
-%Initialisierung mit verschiedenen Trödelwahrscheinlichkeiten
-for iTp = 1:length(tp)
+for i = 1:5
     
-    density = zeros(steps,2);
-    rhoHighway = zeros(steps,1);
+    fluxs = zeros(rhoSteps,2);
+    rhosHighway = zeros(rhoSteps,1);
     
-    for iRhoPKW = 1 : steps
-        rhoPkw = iRhoPKW/steps;
+%Initialisierung mit verschiedenen Gesamtdichten und Simulation
+    for iRhoHighway = 1 : rhoSteps
         
-        highway = Highway(nLanes, nCells);
+        rhoPkw = (iRhoHighway * staticRhoPkw(1))/rhoSteps;
+        rhoLkw = (iRhoHighway * staticRhoLkw(1))/rhoSteps;
+        
+        highway = Highway(nLanes, nCells,1);
         
         nPkw = floor(rhoPkw * highway.nLanes * highway.nCells);
-        nLkw = floor(rhoLkw * highway.nLanes * highway.nCells);
+        nLkw = floor(rhoLkw * highway.nLanes * highway.nCells / sizeLkw);
         
         
         vehicles = cell(nPkw+nLkw, 1);
         
         for iVehicle = 1 : nLkw
             iLkwVMax = 3;
-            vehicles{iVehicle} = Vehicle('LKW', 2, highway.rng.randi(iLkwVMax), iLkwVMax, tp(1), uep(end));
+            vehicles{iVehicle} = Vehicle('LKW', sizeLkw, randi(iLkwVMax), iLkwVMax, tp(1), uep(i));
         end
         
         for iVehicle = nLkw+1 : (nLkw+nPkw)
             %             iPkwVMax = highway.rng.randi(3) + 3; % 4-6
             iPkwVMax = 5; % 4-6
             % LCG Random Function            
-            vehicles{iVehicle} = Vehicle('PKW', 1, highway.rng.randi(iPkwVMax), iPkwVMax, tp(iTp), uep(end));
+%             vehicles{iVehicle} = Vehicle('PKW', 1, highway.rng.randi(iPkwVMax), iPkwVMax, tp(iTp), uep(end));
             %Matlab Random Function
-%             vehicles{iVehicle} = Vehicle('PKW', 1, randi(iPkwVMax), iPkwVMax, tp(iTp), uep(end));
+            vehicles{iVehicle} = Vehicle('PKW', 1, randi(iPkwVMax), iPkwVMax, tp(1), uep(i));
         end
         highway.placeVehicles(vehicles);
         
@@ -73,27 +80,28 @@ for iTp = 1:length(tp)
         
         for iTime = 1:simulationTime
             highway.Simulate();
-            %     animateHighway(highway.highway,highway.maxLengthTruck);
+%             animateHighway(highway.highway,highway.maxLengthTruck);
             % do some other analysis
         end
-        density(iRhoPKW,:) = SaveFlux(highway);
-        rhoHighway(iRhoPKW) = (nPkw+nLkw)/(nLanes*nCells);
+        fluxs(iRhoHighway,:) = SaveFlux(highway);
+        rhosHighway(iRhoHighway) = (nPkw+nLkw*sizeLkw)/(nLanes*nCells);
     end
     
     % Print some end result
     % clf;
     
-    for iDensity = 1:length(density)
+    for iFlux = 1:length(fluxs)
         subplot(2,1,1)
-        plot(rhoHighway(iDensity),density(iDensity,1),[colors{iTp} 'o']);
+        plot(rhosHighway(iFlux),fluxs(iFlux,1),[colors{i} 'o']);
         ylabel('mean(v) / cell/sec');
         subplot(2,1,2)
-        plot(rhoHighway(iDensity),density(iDensity,2),[colors{iTp} 'o']);
+        plot(rhosHighway(iFlux),fluxs(iFlux,2),[colors{i} 'o']);
         xlabel('Dichte/ rho');
         ylabel('Fluss');
     end
-    disp(num2str(tp(iTp)));
+    disp(['noch' num2str(5-i)]);
     pause(1);
+end
 end
 % subplot(2,1,1)
 % legend(num2str(tp(1)),num2str(tp(2)),num2str(tp(3)),num2str(tp(4)),num2str(tp(5)));
