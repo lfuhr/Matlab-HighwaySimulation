@@ -99,7 +99,7 @@ classdef Highway < handle
                         Highway.Accelerate(vehicle); 
 
                         % Wechseln
-                        obj.ChangeLane(lane, zelle, vehicle, neueStrasse); 
+%                         obj.ChangeLane(lane, zelle, vehicle, neueStrasse); 
 
                     end
                 end
@@ -116,7 +116,7 @@ classdef Highway < handle
                         SlowDown(lane, zelle, vehicle)
 
                         % Trödeln
-                        Dawdle(vehicle);
+%                         Dawdle(vehicle);
 
                         % Bewegen
                         Move(lane, zelle, vehicle, neueStrasse);
@@ -172,16 +172,13 @@ classdef Highway < handle
         
         %CheckLane
         function iBlocked = CheckLane(obj, lane, zelle, startv, endv )
-                        
-            iBlocked = endv+1;            
-            
+            iBlocked = endv+1;             
             for idx=startv:endv
                 if ~isempty(obj.highway{lane, obj.idxCellsMod(zelle+idx)})                    
                     iBlocked = idx;
                     return;
                 end
-            end
-            
+            end  
         end
         
 

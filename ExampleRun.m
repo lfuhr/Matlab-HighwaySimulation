@@ -9,7 +9,7 @@ addpath Visualization;
 % -------------------------------------------------------------------------
 nLanes = 1;                 %Anzahl an Spuren
 nCells = 100;               %Länge der Strecke
-highway = Highway(nLanes, nCells);
+highway = Highway(nLanes, nCells, LCG(912915758));
 
 % -------------------------------------------------------------------------
 % Initialize Highway with Vehicles
@@ -24,8 +24,8 @@ vehicles = cell(nPkw+nLkw, 1);
 
 for iVehicle = 1 : nLkw
     iLkwVMax = 3;
-    vehicles{iVehicle} = Vehicle('LKW', sizeLkw, highway.rng.randi(iLkwVMax), ...
-            iLkwVMax, pTroedel, pOvertake);    
+    vehicles{iVehicle} = Vehicle('LKW', sizeLkw, ...
+        highway.rng.randi(iLkwVMax), iLkwVMax, pTroedel, pOvertake);    
 end
 
 for iVehicle = nLkw+1 : (nLkw+nPkw)
@@ -42,7 +42,7 @@ simulationTime = 150; % seconds
 
 for iIime = 1:simulationTime
     highway.Simulate();
-    %animateHighway(highway.highway, sizeLkw);
+    animateHighway(highway.highway, sizeLkw);
     % do some other analysis
 end
 
