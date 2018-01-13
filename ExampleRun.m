@@ -1,36 +1,45 @@
 % This file contains the configuration but no Implementation
 % Based on such a file multiple experiments can be run with the same model
-clear; clc;
+clear; clc; clf;
 
 addpath Model;
 addpath Visualization;
 % -------------------------------------------------------------------------
 % Create highway model
 % -------------------------------------------------------------------------
-nLanes = 1;                 %Anzahl an Spuren
+nLanes = 2;                 %Anzahl an Spuren
 nCells = 100;               %Länge der Strecke
+<<<<<<< HEAD
 highway = Highway(nLanes, nCells, LCG(912915758));
+=======
+highway = Highway(nLanes, nCells,1);
+>>>>>>> 4e0cb261502313bfc79c2a7f5d17a04f60ed73de
 
 % -------------------------------------------------------------------------
 % Initialize Highway with Vehicles
 % -------------------------------------------------------------------------
-rhoPkw = .2;  rhoLkw = .1;
+rhoPkw = .2;  rhoLkw = .7;
 sizeLkw = 2;
-pTroedel = .2;  pOvertake = 1;
+pTroedel = .2;  pOvertake = .0;
 
 nPkw = floor(rhoPkw * highway.nLanes * highway.nCells);
-nLkw = floor(rhoLkw * highway.nLanes * highway.nCells);
+nLkw = floor(rhoLkw * highway.nLanes * highway.nCells / sizeLkw);
 vehicles = cell(nPkw+nLkw, 1);
 
 for iVehicle = 1 : nLkw
     iLkwVMax = 3;
+<<<<<<< HEAD
     vehicles{iVehicle} = Vehicle('LKW', sizeLkw, ...
         highway.rng.randi(iLkwVMax), iLkwVMax, pTroedel, pOvertake);    
+=======
+    vehicles{iVehicle} = Vehicle('LKW', sizeLkw, randi(iLkwVMax), ...
+            iLkwVMax, pTroedel, pOvertake);    
+>>>>>>> 4e0cb261502313bfc79c2a7f5d17a04f60ed73de
 end
 
 for iVehicle = nLkw+1 : (nLkw+nPkw)
-    iPkwVMax = highway.rng.randi(3) + 3; % 4-6
-    vehicles{iVehicle} = Vehicle('PKW', 1, highway.rng.randi(iPkwVMax), ...
+    iPkwVMax = randi(3) + 3; % 4-6
+    vehicles{iVehicle} = Vehicle('PKW', 1, randi(iPkwVMax), ...
             iPkwVMax, pTroedel, pOvertake);    
 end
 highway.placeVehicles(vehicles);
