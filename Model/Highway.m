@@ -9,6 +9,7 @@ classdef Highway < handle
         rng
         speedLimit
         useCellfun
+        indices 
     end
     
     methods
@@ -19,6 +20,10 @@ classdef Highway < handle
             obj.speedLimit = 0;
             obj.rng = rng;
             obj.useCellfun = nargin > 3;
+            
+            % Generate an index array
+            [X,Y] = meshgrid(1:nLanes,1:nCells);
+            obj.indices = num2cell([X(:) Y(:)],2);
         end
 
         function placeVehicles(obj, vehicles)
@@ -76,16 +81,17 @@ classdef Highway < handle
             RobustCellFun(@obj.Accelerate, obj.highway); 
 
             % Wechseln
-            obj.ChangeLane2();
+            obj.PerformUsingCellfun(@obj.ChangeLane);
 
             % Bremsen
-            RobustCellFun(@Highway.SlowDown, obj.highway);
+            cellfun(@(x)obj.PerformUsingCellfunAux(x, @Highway.SlowDown,obj.highway), obj.indices)
 
             % Trödeln
-            RobustCellFun(@Highway.Dawdle, obj.highway);
+            RobustCellFun(@(x)Highway.Dawdle(obj.rng,x), obj.highway);
 
             % Bewegen
-            obj.Move2();
+            obj.PerformUsingCellfun(@obj.Move);
+
         end
         
         
@@ -144,32 +150,10 @@ classdef Highway < handle
             end
         end
         
-        % Alternatives using Cellfun
-        function Move2(obj)
+        function PerformUsingCellfun(obj, f)
             alteStrasse = obj.highway;
             obj.highway = cell(obj.nLanes, obj.nCells);
-            cellfun(@(x)obj.Move2Aux(x, alteStrasse), obj.getIndices(obj.highway))
-        end
-        function Move2Aux(obj,indices, oldHighway) 
-                lane = indices(1);
-                zelle = indices(2);
-                vehicle = oldHighway{lane, zelle};
-                if  ~ isempty(vehicle)
-                    obj.Move(lane, zelle, vehicle, oldHighway);
-                end
-        end
-        function MovChangeLane2e2(obj)
-            alteStrasse = obj.highway;
-            obj.highway = cell(obj.nLanes, obj.nCells);
-            cellfun(@(x)obj.ChangeLane2Aux(x, alteStrasse), obj.getIndices(obj.highway))
-        end
-        function ChangeLane2Aux(obj,indices, oldHighway) 
-                lane = indices(1);
-                zelle = indices(2);
-                vehicle = oldHighway{lane, zelle};
-                if  ~ isempty(vehicle)
-                    obj.ChangeLane(lane, zelle, vehicle, oldHighway);
-                end
+            cellfun(@(x)Highway.PerformUsingCellfunAux(x, f, alteStrasse), obj.indices)
         end
         
         %Wechseln
@@ -181,7 +165,7 @@ classdef Highway < handle
 
                 %Auf aktueller Spur muss gebremst werden
                 if Highway.CheckLane(lane, zelle, 1, vehicle.v,oldHighway) <= vehicle.v
-                    %Nach links wechslen, wenn genau links neben Auto frei
+                %Nach links wechslen, wenn genau links neben Auto frei
 
                 %Schlaues Wechseln: Highway.CheckLane(lane-1, zelle, x, vehicle.v, alteStrasse) > vehicle.v
                 %Dummes Wechseln: Highway.CheckLane(lane-1, zelle, x, 0,alteStrasse) > 0
@@ -244,11 +228,14 @@ classdef Highway < handle
         function Dawdle(rng, vehicle)
             vehicle.v = vehicle.v - (vehicle.v ~= 0 && ((rng.rand() - vehicle.troedelwsnlkt) < 0));
         end
-
-        function indices = getIndices(cellArray)
-            s = size(cellArray);
-            [X,Y] = meshgrid(1:s(1),1:s(2));
-            indices = num2cell([X(:) Y(:)],2);
+        
+        function PerformUsingCellfunAux(indices,f,oldHighway) 
+                lane = indices(1);
+                zelle = indices(2);
+                vehicle = oldHighway{lane, zelle};
+                if  ~ isempty(vehicle)
+                    f(lane, zelle, vehicle, oldHighway);
+                end
         end
         
         function Reset(vehicle)

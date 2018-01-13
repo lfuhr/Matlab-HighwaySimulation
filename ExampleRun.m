@@ -10,14 +10,14 @@ addpath Visualization;
 nLanes = 2;                 %Anzahl an Spuren
 nCells = 100;               %Länge der Strecke
 mlRng.rand = @rand; mlRng.randi = @randi; % can pass this instead of LCG
-highway = Highway(nLanes, nCells,LCG(912915758));
+highway = Highway(nLanes, nCells,LCG(912915758),1);
 
 % -------------------------------------------------------------------------
 % Initialize Highway with Vehicles
 % -------------------------------------------------------------------------
 rhoPkw = .2;  rhoLkw = .1;
 sizeLkw = 2;
-pTroedel = .2;  pOvertake = .0;
+pTroedel = .2;  pOvertake = .5;
 
 nPkw = floor(rhoPkw * highway.nLanes * highway.nCells);
 nLkw = floor(rhoLkw * highway.nLanes * highway.nCells / sizeLkw);
