@@ -5,9 +5,9 @@ classdef Highway < handle
         nLanes
         nCells
         highway
+        tempHighway
         rng
         speedLimit
-        idxCellsMod
         useCellfun
     end
     
@@ -19,9 +19,6 @@ classdef Highway < handle
             obj.speedLimit = 0;
             obj.rng = rng;
             obj.useCellfun = nargin > 3;
-            
-            % Define idxCellsMod
-            obj.idxCellsMod = @(x) mod(x - 1, nCells) + 1;
         end
 
         function placeVehicles(obj, vehicles)
@@ -32,7 +29,8 @@ classdef Highway < handle
                 randCell = obj.rng.randi(obj.nCells);
                 randLane = obj.rng.randi(obj.nLanes);
                 
-                % Finde Lücke die für Fahrzeug groß genug ist                  
+                % Finde Lücke die für Fahrzeug groß genug ist
+                errorCounter = 0;
                 isEmpty = 0;                
                 while ~ isEmpty                    
                     isEmpty = 1;
@@ -44,6 +42,13 @@ classdef Highway < handle
                         end
                     end
                 end
+                errorCounter = errorCounter + 1;
+                if errorCounter > 20*obj.nCells*obj.nLanes
+                    clc;                        
+                    disp('Fehler bei voller Platzierung der Fahrzeuge.. Kein freier Platz auf Highway gefunden');                        
+                    break;
+                end
+
                 
                 % Vorderes Ende  =  1 / Hinteres Ende  =  Vehicle.length
                 for iVehicleLength = 1:vehicle.length
@@ -66,9 +71,6 @@ classdef Highway < handle
         
         
         function SimulateUsingCellfun(obj)
-            
-            % Wechselvariablen zurücksetzen
-            RobustCellFun(@obj.Reset, obj.highway);
 
             % Beschleunigen
             RobustCellFun(@obj.Accelerate, obj.highway); 
@@ -77,7 +79,7 @@ classdef Highway < handle
             obj.highway = obj.ChangeLane(); 
 
             % Bremsen
-            obj.SlowDown();
+            RobustCellFun(@obj.SlowDown, obj.highway);
 
             % Trödeln
             RobustCellFun(@obj.Dawdle, obj.highway);
@@ -89,59 +91,53 @@ classdef Highway < handle
         
         function SimulateUsingFor(obj)
             
-            neueStrasse = cell(obj.nLanes, obj.nCells);
+            oldHighway = obj.highway;
+            obj.highway = cell(obj.nLanes, obj.nCells);
             for lane=1:obj.nLanes
                 for zelle = 1:obj.nCells                    
-                    vehicle = obj.highway{lane, zelle};                    
+                    vehicle = oldHighway{lane, zelle};                    
                     if  ~ isempty(vehicle)
 
                         % Beschleunigen
                         Highway.Accelerate(vehicle); 
 
                         % Wechseln
-%                         obj.ChangeLane(lane, zelle, vehicle, neueStrasse); 
+                        obj.ChangeLane(lane, zelle, vehicle, oldHighway); 
 
                     end
                 end
             end
-            obj.highway = neueStrasse;
             
-            neueStrasse = cell(obj.nLanes, obj.nCells);
+            oldHighway = obj.highway;
+            obj.highway = cell(obj.nLanes, obj.nCells);
             for lane=1:obj.nLanes
                 for zelle = 1:obj.nCells                    
-                    vehicle = obj.highway{lane, zelle};                    
+                    vehicle = oldHighway{lane, zelle};                    
                     if  ~ isempty(vehicle)
 
                         % Bremsen
-                        SlowDown(lane, zelle, vehicle)
+                        Highway.SlowDown(lane, zelle, vehicle, oldHighway)
 
-                        % Trödeln
-%                         Dawdle(vehicle);
+                        % Trödeln (obj, wegen rng)
+                        Highway.Dawdle(obj.rng, vehicle);
 
                         % Bewegen
-                        Move(lane, zelle, vehicle, neueStrasse);
+                        obj.Move(lane, zelle, vehicle, oldHighway);
 
                     end
                 end
             end
-            obj.highway = neueStrasse;
-            
-        end
-        
-        % Trödeln
-        function Dawdle(obj, vehicle)
-            vehicle.v = vehicle.v - (vehicle.v ~= 0 && ((obj.rng.rand() - vehicle.troedelwsnlkt) < 0));
         end
         
         % Bewegen
-        function Move(obj, lane, zelle, vehicle, neueStrasse)
+        function Move(obj, lane, zelle, vehicle, oldHighway)
             if (strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW'))
 
-                neueStrasse{lane, obj.idxCellsMod(zelle + vehicle.v)} = vehicle;
+                obj.highway{lane, obj.idxCellsMod(zelle + vehicle.v)} = vehicle;
                 if strcmp(vehicle.type, 'LKW')
                     for iTruck = 1:vehicle.length - 1
-                        neueStrasse{lane, obj.idxCellsMod(zelle + vehicle.v-iTruck)} ...
-                            = obj.highway{lane,obj.idxCellsMod(zelle - iTruck)};
+                        obj.highway{lane, obj.idxCellsMod(zelle + vehicle.v-iTruck)} ...
+                            = oldHighway{lane,obj.idxCellsMod(zelle - iTruck)};
                     end
                 end
 
@@ -170,39 +166,24 @@ classdef Highway < handle
                 end
         end
         
-        %CheckLane
-        function iBlocked = CheckLane(obj, lane, zelle, startv, endv )
-            iBlocked = endv+1;             
-            for idx=startv:endv
-                if ~isempty(obj.highway{lane, obj.idxCellsMod(zelle+idx)})                    
-                    iBlocked = idx;
-                    return;
-                end
-            end  
-        end
-        
-
-        %Bremsen
-        function SlowDown(lane, zelle, vehicle)            
-            if strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW')      
-                vehicle.v = obj.CheckLane(lane, zelle, 1, vehicle.v) - 1;                            
-            end
-        end
-        
         %Wechseln
-        function ChangeLane(obj, lane, zelle, vehicle, neueStrasse)
+        function ChangeLane(obj, lane, zelle, vehicle, oldHighway)
             if strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW')
-
-                vehicle.gewechselt = 0;
-
                 % Spur wechseln
                 tempLane = lane;
 
+
                 %Auf aktueller Spur muss gebremst werden
-                if obj.CheckLane(lane, zelle, 1, vehicle.v) <= vehicle.v
+                if Highway.CheckLane(lane, zelle, 1, vehicle.v,oldHighway) <= vehicle.v
                     %Nach links wechslen, wenn genau links neben Auto frei
-                    if lane>1 && obj.CheckLane(lane-1, zelle, -vehicle.vmax, vehicle.v) > vehicle.v &&...
-                            obj.rng.rand(vehicle.ueberholwsnlkt)
+
+                %Schlaues Wechseln: Highway.CheckLane(lane-1, zelle, x, vehicle.v, alteStrasse) > vehicle.v
+                %Dummes Wechseln: Highway.CheckLane(lane-1, zelle, x, 0,alteStrasse) > 0
+                %Vorausschauendes Wechseln: Highway.CheckLane(lane-1, zelle, -vehicle.v, x, alteStrasse) > x
+                %Rücksichtsloses Wechseln: Highway.CheckLane(lane-1, zelle, -vehicle.length+1, x, alteStrasse) > x
+                %Genauso auch bei der Nach-Rechts-Wechseln-Abfrage unten
+                    if lane>1 && Highway.CheckLane(lane-1, zelle, -vehicle.length+1, 0, oldHighway) > 0 &&...
+                            ((obj.rng.rand() - vehicle.ueberholwsnlkt) < 0)
                         tempLane=lane-1;
                         vehicle.gewechselt=-1;
                     end
@@ -210,24 +191,53 @@ classdef Highway < handle
 
                 % Nach rechts wechseln
                 %Nach rechts wechseln, wenn genau rechts neben Auto frei
-                if lane < obj.nLanes && obj.rng.rand(vehicle.ueberholwsnlkt) &&...
-                        obj.CheckLane(lane+1, zelle, -vehicle.length+1, vehicle.v) > vehicle.v %rechte Spur ist frei
+                if lane < obj.nLanes && ((obj.rng.rand() - vehicle.ueberholwsnlkt) < 0) &&...
+                        Highway.CheckLane(lane+1, zelle, -vehicle.length+1,0, oldHighway) > 0 %rechte Spur ist frei
                     tempLane=lane+1;
                     vehicle.gewechselt=+1;
                 end
 
 
-                neueStrasse{tempLane,zelle} = vehicle;
+                obj.highway{tempLane,zelle} = vehicle;
                 if strcmp(vehicle.type,'LKW')
                     for iTruck=1:vehicle.length-1
-                        neueStrasse{tempLane,obj.idxCellsMod(zelle-iTruck)} ...
-                            = obj.highway{lane,obj.idxCellsMod(zelle-iTruck)};
+                        obj.highway{tempLane,obj.idxCellsMod(zelle-iTruck)} ...
+                            = oldHighway{lane,obj.idxCellsMod(zelle-iTruck)};
                     end
                 end
             end
         end
+        
+        function result = idxCellsMod(obj,x)
+            result = mod(x - 1, obj.nCells) + 1;
+        end
+        
+        
     end
-    methods (Static)               
+    methods (Static)
+        
+        %CheckLane
+        function iBlocked = CheckLane(lane, zelle, startv, endv, highway )
+            iBlocked = endv+1;             
+            for idx=startv:endv
+                if ~isempty(highway{lane, mod(zelle+idx-1, size(highway,2)) + 1})                    
+                    iBlocked = idx;
+                    return;
+                end
+            end  
+        end
+
+        %Bremsen
+        function SlowDown(lane, zelle, vehicle, highway)            
+            if strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW')      
+                vehicle.v = Highway.CheckLane(lane, zelle, 1, vehicle.v, highway) - 1;                            
+            end
+        end
+        
+        % Trödeln
+        function Dawdle(rng, vehicle)
+            vehicle.v = vehicle.v - (vehicle.v ~= 0 && ((rng.rand() - vehicle.troedelwsnlkt) < 0));
+        end
 
         function indices = getIndices(cellArray)
             s = size(cellArray);
