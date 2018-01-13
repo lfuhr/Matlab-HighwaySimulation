@@ -45,7 +45,7 @@ classdef Highway < handle
                         end
                     end
                     errorCounter = errorCounter + 1;
-                    if errorCounter > obj.nCells*obj.nLanes
+                    if errorCounter > 20*obj.nCells*obj.nLanes
                         clc;                        
                         disp('Fehler bei voller Platzierung der Fahrzeuge.. Kein freier Platz auf Highway gefunden');                        
                         break;
@@ -177,10 +177,17 @@ classdef Highway < handle
                             % Spur wechseln
                             tempLane = lane;
                             
+                            
                             %Auf aktueller Spur muss gebremst werden
                             if obj.CheckLane(lane, zelle, 1, vehicle.v) <= vehicle.v
                                 %Nach links wechslen, wenn genau links neben Auto frei
-                                if lane>1 && obj.CheckLane(lane-1, zelle, -vehicle.vmax, vehicle.v) > vehicle.v &&...
+                                
+                            %Schlaues Wechseln: obj.CheckLane(lane-1, zelle, x, vehicle.v) > vehicle.v
+                            %Dummes Wechseln: obj.CheckLane(lane-1, zelle, x, 0) > 0
+                            %Vorausschauendes Wechseln: obj.CheckLane(lane-1, zelle, -vehicle.v, x) > x
+                            %Rücksichtsloses Wechseln: obj.CheckLane(lane-1, zelle, -vehicle.length+1, x) > x
+                            %Genauso auch bei der Nach-Rechts-Wechseln-Abfrage unten
+                                if lane>1 && obj.CheckLane(lane-1, zelle, -vehicle.length+1, 0) > 0 &&...
                                         ((rand() - vehicle.ueberholwsnlkt) < 0)
                                     tempLane=lane-1;
                                     vehicle.gewechselt=-1;
@@ -190,7 +197,7 @@ classdef Highway < handle
                             % Nach rechts wechseln
                             %Nach rechts wechseln, wenn genau rechts neben Auto frei
                             if lane < obj.nLanes && ((rand() - vehicle.ueberholwsnlkt) < 0) &&...
-                                    obj.CheckLane(lane+1, zelle, -vehicle.length+1, vehicle.v) > vehicle.v %rechte Spur ist frei
+                                    obj.CheckLane(lane+1, zelle, -vehicle.length+1,0) > 0 %rechte Spur ist frei
                                 tempLane=lane+1;
                                 vehicle.gewechselt=+1;
                             end

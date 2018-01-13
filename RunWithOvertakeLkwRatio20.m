@@ -26,16 +26,20 @@ staticRhoPkw = 1-staticRhoLkw;
 
 sizeLkw = 2;
 
-for nLanes=1:2
+rhoSteps = 100;
+
+legends={'TrödelP = 0.0','0.2','0.5','0.8','1.0'};
+
+for nLanes=2:2
     figure
-    % clf;
     subplot(2,1,1)
+%     title('Zwei Spuren');
     hold on;
     subplot(2,1,2)
     hold on;
     
     
-    rhoSteps = 200;
+    plots=[];
     
     for i = 1:5
         
@@ -45,8 +49,8 @@ for nLanes=1:2
         %Initialisierung mit verschiedenen Gesamtdichten und Simulation
         for iRhoHighway = 1 : rhoSteps
             
-            rhoPkw = (iRhoHighway * staticRhoPkw(1))/rhoSteps;
-            rhoLkw = (iRhoHighway * staticRhoLkw(1))/rhoSteps;
+            rhoPkw = (iRhoHighway * staticRhoPkw(2))/rhoSteps;
+            rhoLkw = (iRhoHighway * staticRhoLkw(2))/rhoSteps;
             
             highway = Highway(nLanes, nCells,1);
             
@@ -96,8 +100,8 @@ for nLanes=1:2
                     plots(end + 1) = scatter(rhosHighway(iFlux),fluxs(iFlux,iPlot),colors{i},'filled');
                 else
                     scatter(rhosHighway(iFlux),fluxs(iFlux,iPlot),colors{i},'filled');
-                end
-                if iFlux > 1
+                end         
+                if iFlux > 1                    
                     plot([rhosHighway(iFlux-1) rhosHighway(iFlux)], [fluxs(iFlux-1,iPlot) fluxs(iFlux,iPlot)],colors{i});
                 end
             end
@@ -113,5 +117,5 @@ for nLanes=1:2
     xlabel('Dichte/ rho');
     ylabel('Fluss');
 end
-
-
+% subplot(2,1,1)
+% legend(num2str(tp(1)),num2str(tp(2)),num2str(tp(3)),num2str(tp(4)),num2str(tp(5)));
