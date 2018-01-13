@@ -9,12 +9,13 @@ addpath Visualization;
 % -------------------------------------------------------------------------
 nLanes = 2;                 %Anzahl an Spuren
 nCells = 100;               %Länge der Strecke
-highway = Highway(nLanes, nCells,1);
+mlRng.rand = @rand; mlRng.randi = @randi; % can pass this instead of LCG
+highway = Highway(nLanes, nCells,LCG(912915758));
 
 % -------------------------------------------------------------------------
 % Initialize Highway with Vehicles
 % -------------------------------------------------------------------------
-rhoPkw = .2;  rhoLkw = .7;
+rhoPkw = .2;  rhoLkw = .1;
 sizeLkw = 2;
 pTroedel = .2;  pOvertake = .0;
 
@@ -24,13 +25,13 @@ vehicles = cell(nPkw+nLkw, 1);
 
 for iVehicle = 1 : nLkw
     iLkwVMax = 3;
-    vehicles{iVehicle} = Vehicle('LKW', sizeLkw, randi(iLkwVMax), ...
+    vehicles{iVehicle} = Vehicle('LKW', sizeLkw, highway.rng.randi(iLkwVMax), ...
             iLkwVMax, pTroedel, pOvertake);    
 end
 
 for iVehicle = nLkw+1 : (nLkw+nPkw)
-    iPkwVMax = randi(3) + 3; % 4-6
-    vehicles{iVehicle} = Vehicle('PKW', 1, randi(iPkwVMax), ...
+    iPkwVMax = highway.rng.randi(3) + 3; % 4-6
+    vehicles{iVehicle} = Vehicle('PKW', 1, highway.rng.randi(iPkwVMax), ...
             iPkwVMax, pTroedel, pOvertake);    
 end
 highway.placeVehicles(vehicles);

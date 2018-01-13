@@ -76,13 +76,13 @@ classdef Highway < handle
             RobustCellFun(@obj.Accelerate, obj.highway); 
 
             % Wechseln
-            obj.highway = obj.ChangeLane(); 
+            obj.ChangeLane2();
 
             % Bremsen
-            RobustCellFun(@obj.SlowDown, obj.highway);
+            RobustCellFun(@Highway.SlowDown, obj.highway);
 
             % Trödeln
-            RobustCellFun(@obj.Dawdle, obj.highway);
+            RobustCellFun(@Highway.Dawdle, obj.highway);
 
             % Bewegen
             obj.Move2();
@@ -144,25 +144,31 @@ classdef Highway < handle
             end
         end
         
-        % Alternative for Move() using Cellfun
+        % Alternatives using Cellfun
         function Move2(obj)
             alteStrasse = obj.highway;
             obj.highway = cell(obj.nLanes, obj.nCells);
             cellfun(@(x)obj.Move2Aux(x, alteStrasse), obj.getIndices(obj.highway))
         end
-        function Move2Aux(obj,indices, altestrasse) 
+        function Move2Aux(obj,indices, oldHighway) 
                 lane = indices(1);
                 zelle = indices(2);
-                vehicle = altestrasse{lane, zelle};
-                if  ~ isempty(vehicle) && (strcmp(vehicle.type, 'PKW') || strcmp(vehicle.type, 'LKW'))
-                    obj.highway{lane, obj.idxCellsMod(zelle + vehicle.v)} = vehicle;
-                    if strcmp(vehicle.type, 'LKW')
-                        for iTruck = 1:vehicle.length - 1
-                            obj.highway{lane, obj.idxCellsMod(zelle + vehicle.v-iTruck)} ...
-                                = altestrasse{lane,obj.idxCellsMod(zelle - iTruck)};
-                        end
-                    end
-
+                vehicle = oldHighway{lane, zelle};
+                if  ~ isempty(vehicle)
+                    obj.Move(lane, zelle, vehicle, oldHighway);
+                end
+        end
+        function MovChangeLane2e2(obj)
+            alteStrasse = obj.highway;
+            obj.highway = cell(obj.nLanes, obj.nCells);
+            cellfun(@(x)obj.ChangeLane2Aux(x, alteStrasse), obj.getIndices(obj.highway))
+        end
+        function ChangeLane2Aux(obj,indices, oldHighway) 
+                lane = indices(1);
+                zelle = indices(2);
+                vehicle = oldHighway{lane, zelle};
+                if  ~ isempty(vehicle)
+                    obj.ChangeLane(lane, zelle, vehicle, oldHighway);
                 end
         end
         
