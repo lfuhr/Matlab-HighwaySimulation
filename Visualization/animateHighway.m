@@ -25,9 +25,7 @@ for frame = 1:fps
     hold on
     axis equal
     axis off
-    %     colorbar('Ticks',[3,5,7,9,11],...
-    %          'TickLabels',{'Cold','Cool','Neutral','Warm','Hot'})
-    
+         
     if Spur >= 1
         a = rectangle('Position',[-maxLengthTruck * lengthZelle, ...
             -(HoeheStrasse + BreiteSpur * Spur), ...
@@ -35,7 +33,7 @@ for frame = 1:fps
             Spur * BreiteSpur]);
         set(a, 'FaceColor', [0.5278 0.5278 0.5278])
         for k = 1:Spur-1
-            x = [-maxLengthTruck * lengthZelle,  (zellen+maxLengthTruck+1)*lengthZelle];
+            x = [-maxLengthTruck * lengthZelle,  (zellen+maxLengthTruck-1)*lengthZelle];
             y = [HoeheStrasse + k * BreiteSpur,  HoeheStrasse + k * BreiteSpur];
             line(x, -y, 'Color', 'white', 'LineStyle', '--')
         end
