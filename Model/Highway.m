@@ -172,7 +172,7 @@ classdef Highway < handle
                 %Vorausschauendes Wechseln: Highway.CheckLane(lane-1, zelle, -vehicle.v, x, alteStrasse) > x
                 %Rücksichtsloses Wechseln: Highway.CheckLane(lane-1, zelle, -vehicle.length+1, x, alteStrasse) > x
                 %Genauso auch bei der Nach-Rechts-Wechseln-Abfrage unten
-                    if lane>1 && Highway.CheckLane(lane-1, zelle, -vehicle.length+1, 0, oldHighway) > 0 &&...
+                    if lane>1 && Highway.CheckLane(lane-1, zelle, -vehicle.v, vehicle.v, oldHighway) > vehicle.v &&...
                             ((obj.rng.rand() - vehicle.ueberholwsnlkt) < 0)
                         tempLane=lane-1;
                         vehicle.gewechselt=-1;
@@ -182,7 +182,7 @@ classdef Highway < handle
                 % Nach rechts wechseln
                 %Nach rechts wechseln, wenn genau rechts neben Auto frei
                 if lane < obj.nLanes && ((obj.rng.rand() - vehicle.ueberholwsnlkt) < 0) &&...
-                        Highway.CheckLane(lane+1, zelle, -vehicle.length+1,0, oldHighway) > 0 %rechte Spur ist frei
+                        Highway.CheckLane(lane+1, zelle, -vehicle.v, vehicle.v, oldHighway) > vehicle.v %rechte Spur ist frei
                     tempLane=lane+1;
                     vehicle.gewechselt=+1;
                 end
