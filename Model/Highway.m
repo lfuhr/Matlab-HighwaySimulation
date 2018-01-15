@@ -36,8 +36,8 @@ classdef Highway < handle
                 
                 % Finde Lücke die für Fahrzeug groß genug ist
                 errorCounter = 0;
-                isEmpty = 0;                
-                while ~ isEmpty                    
+                isEmpty = 0;
+                while ~ isEmpty
                     isEmpty = 1;
                     for iVehicleLength = 1:vehicle.length
                         if ~ isempty(obj.highway{ randLane, obj.idxCellsMod(randCell+1-iVehicleLength) })
@@ -46,14 +46,14 @@ classdef Highway < handle
                             randLane = obj.rng.randi(obj.nLanes);
                         end
                     end
+                    errorCounter = errorCounter + 1;
+                    if errorCounter > 20*obj.nCells*obj.nLanes
+                        clc;
+                        disp('Fehler bei voller Platzierung der Fahrzeuge.. Kein freier Platz auf Highway gefunden');
+                        break;
+                    end
                 end
-                errorCounter = errorCounter + 1;
-                if errorCounter > 20*obj.nCells*obj.nLanes
-                    clc;                        
-                    disp('Fehler bei voller Platzierung der Fahrzeuge.. Kein freier Platz auf Highway gefunden');                        
-                    break;
-                end
-
+                
                 
                 % Vorderes Ende  =  1 / Hinteres Ende  =  Vehicle.length
                 for iVehicleLength = 1:vehicle.length
@@ -167,9 +167,9 @@ classdef Highway < handle
                 if Highway.CheckLane(lane, zelle, 1, vehicle.v,oldHighway) <= vehicle.v
                 %Nach links wechslen, wenn genau links neben Auto frei
 
-                %Schlaues Wechseln: Highway.CheckLane(lane-1, zelle, x, vehicle.v, alteStrasse) > vehicle.v
-                %Dummes Wechseln: Highway.CheckLane(lane-1, zelle, x, 0,alteStrasse) > 0
-                %Vorausschauendes Wechseln: Highway.CheckLane(lane-1, zelle, -vehicle.v, x, alteStrasse) > x
+                %Mit Vorausschauen Wechseln: Highway.CheckLane(lane-1, zelle, x, vehicle.v, alteStrasse) > vehicle.v
+                %Ohne Vorausschauen Wechseln: Highway.CheckLane(lane-1, zelle, x, 0,alteStrasse) > 0
+                %Rücksichtsvolles Wechseln: Highway.CheckLane(lane-1, zelle, -vehicle.v, x, alteStrasse) > x
                 %Rücksichtsloses Wechseln: Highway.CheckLane(lane-1, zelle, -vehicle.length+1, x, alteStrasse) > x
                 %Genauso auch bei der Nach-Rechts-Wechseln-Abfrage unten
                     if lane>1 && Highway.CheckLane(lane-1, zelle, -vehicle.v, vehicle.v, oldHighway) > vehicle.v &&...
