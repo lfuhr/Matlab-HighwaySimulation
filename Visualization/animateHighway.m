@@ -1,12 +1,12 @@
 function [strasse] = animateHighway(strasse,maxLengthTruck)
 
+% Christoph Sokal
+
+
 global v_max;
 v_max=0;
 global v_min;
-v_min=10;
-
-% max_v(strasse);
-% min_v(strasse);
+v_min=100;
 
 cellfun(@min_max_v,strasse);
 
@@ -33,7 +33,7 @@ for frame = 1:fps
             Spur * BreiteSpur]);
         set(a, 'FaceColor', [0.5278 0.5278 0.5278])
         for k = 1:Spur-1
-            x = [-maxLengthTruck * lengthZelle,  (zellen+maxLengthTruck-1)*lengthZelle];
+            x = [-(maxLengthTruck) * lengthZelle,  (zellen+1)*lengthZelle];
             y = [HoeheStrasse + k * BreiteSpur,  HoeheStrasse + k * BreiteSpur];
             line(x, -y, 'Color', 'white', 'LineStyle', '--')
         end
@@ -43,7 +43,7 @@ for frame = 1:fps
     for i=1:Spur
         for j=1:zellen
             if ~isempty(strasse{i,j})
-                if(strcmp(strasse{i,j}.type, 'LKW'))% && str2double(strasse{i,j}.type(end))==1)
+                if(strcmp(strasse{i,j}.type, 'LKW'))
                     car = rectangle('Position',[idxmod(((j-strasse{i,j}.v)+dt*frame*strasse{i,j}.v)*lengthZelle,zellen*7.5)-(strasse{i,j}.length-1)*lengthZelle ...
                         -(HoeheStrasse+BreiteSpur*(1/2+i-strasse{i,j}.gewechselt-1)+BreiteSpur*frame*dt*strasse{i,j}.gewechselt) 4*strasse{i,j}.length 2]);
                     set(car, 'FaceColor', 'black','EdgeColor', 'black')
@@ -52,8 +52,11 @@ for frame = 1:fps
                 if(strcmp(strasse{i,j}.type,'PKW'))
                     car=rectangle('Position',[idxmod(((j-strasse{i,j}.v)+dt*frame*strasse{i,j}.v)*7.5,zellen*7.5)...
                         -(HoeheStrasse+BreiteSpur*(1/2+i-strasse{i,j}.gewechselt-1)+BreiteSpur*frame*dt*strasse{i,j}.gewechselt) 4 2],'Curvature',[0.5,1]);
-                    set(car, 'FaceColor', hsv2rgb([(1/360)*1/(1-(v_min/v_max))*240*(1-(strasse{i,j}.vmax/v_max)),1,1]),'EdgeColor', hsv2rgb([(1/360)*1/(1-(v_min/v_max))*240*(1-(strasse{i,j}.vmax/v_max)),1,1]))
-                    
+                    if(v_min~=v_max)
+                        set(car, 'FaceColor', hsv2rgb([(1/360)*1/(1-(v_min/v_max))*240*(1-(strasse{i,j}.vmax/v_max)),1,1]),'EdgeColor', hsv2rgb([(1/360)*1/(1-(v_min/v_max))*240*(1-(strasse{i,j}.vmax/v_max)),1,1]))
+                    else
+                        set(car, 'FaceColor', 'red','EdgeColor', 'red')
+                    end
                 end
                 
                 if frame==fps
