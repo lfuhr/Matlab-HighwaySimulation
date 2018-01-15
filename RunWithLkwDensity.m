@@ -56,12 +56,12 @@ for nLanes=2:2
             
             for iVehicle = 1 : nLkw
                 iLkwVMax = 3;
-                vehicles{iVehicle} = Vehicle('LKW', sizeLkw, randi(iLkwVMax), iLkwVMax, tp(1), uep(4));
+                vehicles{iVehicle} = Vehicle('LKW', sizeLkw, randi(iLkwVMax), iLkwVMax, tp(1), uep(1));
             end
             
             for iVehicle = nLkw+1 : (nLkw+nPkw)
                 iPkwVMax = 5; % 4-6
-                vehicles{iVehicle} = Vehicle('PKW', 1, randi(iPkwVMax), iPkwVMax, tp(1), uep(4));
+                vehicles{iVehicle} = Vehicle('PKW', 1, randi(iPkwVMax), iPkwVMax, tp(1), uep(1));
             end
             
             highway.placeVehicles(vehicles);
