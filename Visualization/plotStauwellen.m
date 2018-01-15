@@ -1,4 +1,7 @@
 function [] = plotStauwellen(highway_array,mode)
+
+% Christoph Sokal
+
 hold on
 for i=1:length(highway_array)
     for j=1:size(highway_array{1},1)
