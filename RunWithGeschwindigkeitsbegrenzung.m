@@ -66,7 +66,7 @@ for nLanes=2:2
                 if i>0
                     iPkwVMax = i+2;%highway.rng.randi(i) + 2; % 4-6
                 end
-                vehicles{iVehicle} = Vehicle('PKW', 1, highway.rng.randi(iPkwVMax), iPkwVMax, tp(1), uep(4));
+                vehicles{iVehicle} = Vehicle('PKW', 1, highway.rng.randi(iPkwVMax), iPkwVMax, tp(3), uep(4));
             end
             highway.placeVehicles(vehicles);
             

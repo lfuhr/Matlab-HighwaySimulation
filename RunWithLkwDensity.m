@@ -56,12 +56,12 @@ for nLanes=2:2
             
             for iVehicle = 1 : nLkw
                 iLkwVMax = 3;
-                vehicles{iVehicle} = Vehicle('LKW', sizeLkw, randi(iLkwVMax), iLkwVMax, tp(1), uep(1));
+                vehicles{iVehicle} = Vehicle('LKW', sizeLkw, randi(iLkwVMax), iLkwVMax, tp(1), uep(4));
             end
             
             for iVehicle = nLkw+1 : (nLkw+nPkw)
-                iPkwVMax = 5; % 4-6
-                vehicles{iVehicle} = Vehicle('PKW', 1, randi(iPkwVMax), iPkwVMax, tp(1), uep(1));
+                iPkwVMax = 3; % 4-6
+                vehicles{iVehicle} = Vehicle('PKW', 1, randi(iPkwVMax), iPkwVMax, tp(1), uep(4));
             end
             
             highway.placeVehicles(vehicles);
@@ -71,8 +71,6 @@ for nLanes=2:2
             % Run Simulation
             % -------------------------------------------------------------------------
             simulationTime = 20; % seconds
-            
-            % localIntervall = [1 100];
             
             for iTime = 1:simulationTime
                 highway.Simulate();

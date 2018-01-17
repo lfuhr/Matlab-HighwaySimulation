@@ -169,10 +169,10 @@ classdef Highway < handle
 
                 %Mit Vorausschauen Wechseln: Highway.CheckLane(lane-1, zelle, x, vehicle.v, alteStrasse) > vehicle.v
                 %Ohne Vorausschauen Wechseln: Highway.CheckLane(lane-1, zelle, x, 0,alteStrasse) > 0
-                %Rücksichtsvolles Wechseln: Highway.CheckLane(lane-1, zelle, -vehicle.v, x, alteStrasse) > x
+                %Rücksichtsvolles Wechseln: Highway.CheckLane(lane-1, zelle, -vehicle.v-vehicle.length+1, x, alteStrasse) > x
                 %Rücksichtsloses Wechseln: Highway.CheckLane(lane-1, zelle, -vehicle.length+1, x, alteStrasse) > x
                 %Genauso auch bei der Nach-Rechts-Wechseln-Abfrage unten
-                    if lane>1 && Highway.CheckLane(lane-1, zelle, -vehicle.v, vehicle.v, oldHighway) > vehicle.v &&...
+                    if lane>1 && Highway.CheckLane(lane-1, zelle, -vehicle.v-vehicle.length+1, vehicle.v, oldHighway) > vehicle.v &&...
                             ((obj.rng.rand() - vehicle.ueberholwsnlkt) < 0)
                         tempLane=lane-1;
                         vehicle.gewechselt=-1;
@@ -182,19 +182,26 @@ classdef Highway < handle
                 % Nach rechts wechseln
                 %Nach rechts wechseln, wenn genau rechts neben Auto frei
                 if lane < obj.nLanes && ((obj.rng.rand() - vehicle.ueberholwsnlkt) < 0) &&...
-                        Highway.CheckLane(lane+1, zelle, -vehicle.v, vehicle.v, oldHighway) > vehicle.v %rechte Spur ist frei
+                        Highway.CheckLane(lane+1, zelle, -vehicle.v-vehicle.length+1, vehicle.v, oldHighway) > vehicle.v %rechte Spur ist frei
                     tempLane=lane+1;
                     vehicle.gewechselt=+1;
                 end
-
-
-                obj.highway{tempLane,zelle} = vehicle;
-                if strcmp(vehicle.type,'LKW')
-                    for iTruck=1:vehicle.length-1
-                        obj.highway{tempLane,obj.idxCellsMod(zelle-iTruck)} ...
-                            = oldHighway{lane,obj.idxCellsMod(zelle-iTruck)};
+                
+                %Fehlerbehebung für Fahrzeugeliminierung bei mehr als 2
+                %Spuren (noch nicht ausgereift)
+                
+%                 if Highway.CheckLane(tempLane, zelle, -vehicle.length+1, 0, obj.highway) == 0
+                    obj.highway{tempLane,zelle} = vehicle;
+                    if strcmp(vehicle.type,'LKW')
+                        for iTruck=1:vehicle.length-1
+                            obj.highway{tempLane,obj.idxCellsMod(zelle-iTruck)} ...
+                                = oldHighway{lane,obj.idxCellsMod(zelle-iTruck)};
+                        end
                     end
-                end
+%                 else
+%                     obj.highway{lane,zelle} = vehicle;
+%                     vehicle.gewechselt=0;
+%                 end
             end
         end
         
