@@ -1,6 +1,6 @@
 % This file contains the configuration but no Implementation
 % Based on such a file multiple experiments can be run with the same model
-clear; clc; clf;
+clear; clc;
 
 addpath Model;
 addpath Visualization;

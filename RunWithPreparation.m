@@ -26,22 +26,16 @@ staticRhoPkw = 1-staticRhoLkw;
 
 sizeLkw = 2;
 
+simulationTime = 20; % seconds
+
 legends={'Rho LKW = 0.0','Rho LKW = 0.2','Rho LKW = 0.5','Rho LKW = 0.8','Rho LKW = 1.0'};
-results=cell(3,3);
+results=cell(5,4);
+rhoSteps = 100;
 
-plott = 1;
-
-for nLanes=1:2
-    figure
-    % clf;
-    subplot(2,1,1)
-    hold on;
-    subplot(2,1,2)
-    hold on;
-    plots=[];
+%Beachte: Die Regeln für Überholen müssen in Model\Highway in der Funktion
+% "ChangeLane" geändert werden
+for nLanes=1:2    
     
-    
-    rhoSteps = 100;
     
     for i = 1:5
         
@@ -54,7 +48,8 @@ for nLanes=1:2
             rhoPkw = (iRhoHighway * staticRhoPkw(1))/rhoSteps;
             rhoLkw = (iRhoHighway * staticRhoLkw(1))/rhoSteps;
             
-            highway = Highway(nLanes, nCells,1);
+            % mlRng.rand = @rand; mlRng.randi = @randi; % can pass this instead of LCG
+            highway = Highway(nLanes, nCells,LCG(912915758),1);
             
             nPkw = floor(rhoPkw * highway.nLanes * highway.nCells);
             nLkw = floor(rhoLkw * highway.nLanes * highway.nCells / sizeLkw);
@@ -68,11 +63,8 @@ for nLanes=1:2
             end
             
             for iVehicle = nLkw+1 : (nLkw+nPkw)
-                %             iPkwVMax = highway.rng.randi(3) + 3; % 4-6
+                %  iPkwVMax = highway.rng.randi(3) + 3; % 4-6
                 iPkwVMax = 5; % 4-6
-                % LCG Random Function
-                %             vehicles{iVehicle} = Vehicle('PKW', 1, highway.rng.randi(iPkwVMax), iPkwVMax, tp(iTp), uep(end));
-                %Matlab Random Function
                 vehicles{iVehicle} = Vehicle('PKW', 1, randi(iPkwVMax), iPkwVMax, tp(i), uep(1));
             end
             highway.placeVehicles(vehicles);
@@ -80,9 +72,6 @@ for nLanes=1:2
             % -------------------------------------------------------------------------
             % Run Simulation
             % -------------------------------------------------------------------------
-            simulationTime = 20; % seconds
-            
-            % localIntervall = [1 100];
             
             for iTime = 1:simulationTime
                 highway.Simulate();
@@ -91,33 +80,16 @@ for nLanes=1:2
             end
             fluxs(iRhoHighway,:) = SaveFlux(highway);
             rhosHighway(iRhoHighway) = (nPkw+nLkw*sizeLkw)/(nLanes*nCells);
-        end
-        
-        %%%%%%%%%%%%%%%%%% Plot results %%%%%%%%%%%%%%%%%%%%%
-        
-        for iPlot = 1:2
-            for iFlux = 1:length(fluxs)
-                subplot(2,1,iPlot)
-                if iFlux == 1 && iPlot == 1
-                    plots(end + 1) = scatter(rhosHighway(iFlux),fluxs(iFlux,iPlot),colors{i},'filled');
-                else
-                    scatter(rhosHighway(iFlux),fluxs(iFlux,iPlot),colors{i},'filled');
-                end
-                if iFlux > 1
-                    plot([rhosHighway(iFlux-1) rhosHighway(iFlux)], [fluxs(iFlux-1,iPlot) fluxs(iFlux,iPlot)],colors{i});
-                end
-            end
-        end
+        end     
         disp(['noch' num2str(5-i)]);
-        pause(1);
+        results{i,1}=highway;
+        results{i,2}=rhosHighway;
+        results{i,3}=fluxs;
+        results{i,4}=legends;
     end
-    subplot(2,1,1)
-    legend(plots,legends);
-    ylabel('mean(v)');
-    subplot(2,1,2)
-    legend(plots,legends);
-    xlabel('Dichte/ rho');
-    ylabel('Fluss');
 end
+plotFlux(results,legends);
+disp('fertig');
+
 
 

@@ -7,7 +7,7 @@ addpath Visualization;
 % -------------------------------------------------------------------------
 % Create highway model
 % -------------------------------------------------------------------------
-nLanes = 3;                 %Anzahl an Spuren
+nLanes = 5;                 %Anzahl an Spuren
 nCells = 50;               %Länge der Strecke
 mlRng.rand = @rand; mlRng.randi = @randi; % can pass this instead of LCG
 highway = Highway(nLanes, nCells,LCG(912915758),1);
